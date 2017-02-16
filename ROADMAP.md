@@ -2,6 +2,32 @@
 
 The goal of the Mssqlex project is to create an Elixir adapter for Microsoft SQL Server that is compatible with Ecto 2.0
 
+<!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Section 1: DB Connection](#section-1-db-connection)
+	- [Task 1: Establish Connection](#task-1-establish-connection)
+	- [Task 2: Close Connection](#task-2-close-connection)
+	- [Task 3a: Queries](#task-3a-queries)
+	- [Task 3b: Pools](#task-3b-pools)
+	- [Task 4a: Transactions / Rollbacks](#task-4a-transactions-rollbacks)
+	- [Task 4b: Child Spec](#task-4b-child-spec)
+	- [Task 5a: Stream](#task-5a-stream)
+- [Section 2: Types / Encoding / Decoding](#section-2-types-encoding-decoding)
+	- [Task 1: Types](#task-1-types)
+	- [Task 2: Encoding / Decoding](#task-2-encoding-decoding)
+- [Section 3: Ecto.Repo](#section-3-ectorepo)
+	- [Task 1: Basic query support](#task-1-basic-query-support)
+	- [Task 2: Full query support](#task-2-full-query-support)
+	- [Task 3: Transactions](#task-3-transactions)
+	- [Task 4: Migrations / Rollbacks](#task-4-migrations-rollbacks)
+	- [Task 5: Ecto.Create / Ecto.Drop Mix Tasks](#task-5-ectocreate-ectodrop-mix-tasks)
+- [Section 4: Ecto.Query](#section-4-ectoquery)
+- [Section 5: Ecto.Schema](#section-5-ectoschema)
+- [Section 6: Ecto.Changeset](#section-6-ectochangeset)
+- [Section 7: Ecto 2.0 Functionality](#section-7-ecto-20-functionality)
+
+<!-- /TOC -->
+
 ## Section 1: DB Connection
 
 Establishing a connection with a database, using the [DBConnection](https://github.com/elixir-ecto/db_connection) library, do basic queries, pooling, etc.
