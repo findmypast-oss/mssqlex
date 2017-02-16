@@ -29,6 +29,6 @@ defmodule Mssqlex.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:db_connection, "~> 1.1"}]
   end
 end
