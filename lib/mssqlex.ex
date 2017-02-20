@@ -4,15 +4,34 @@ defmodule Mssqlex do
   """
 
   @doc """
-  Hello world.
+  Connect to a MS SQL Server using ODBC.
+
+  ## Options
+
+    * `:odbc_driver` - The driver ODBC will use (default: {ODBC Driver 13 for SQL Server})
+    * `:hostname` - The server hostname (default: localhost)
+    * `:database` - The name of the database (default: MSSQL_DB environment variable)
+    * `:username` - Username (default: MSSQL_UID environment variable)
+    * `:password` - User password (default: MSSQL_PWD environment variable)
+
+  `Mssqlex` uses the `DBConnection` framework and supports all `DBConnection`
+  options like `:idle`, `:after_connect` etc.
+  See `DBConnection.start_link/2` for more information.
 
   ## Examples
 
-      iex> Mssqlex.hello
-      :world
-
+      iex> {:ok, pid} = Mssqlex.start_link(database: "mr_microsoft")
+      {:ok, #PID<0.70.0>}
   """
-  def hello do
-    :world
+  @spec start_link(Keyword.t) :: {:ok, pid}
+  def start_link(opts) do
+    opts
+    |> Keyword.put_new(:odbc_driver, "{ODBC Driver 13 for SQL Server}")
+    |> Keyword.put_new(:hostname, "localhost")
+    |> Keyword.put_new(:database, "MSSQL_DB")
+    |> Keyword.put_new(:username, "MSSQL_UID")
+    |> Keyword.put_new(:password, "MSSQL_PWD")
+
+    DBConnection.start_link(Mssqlex.Protocol, opts)
   end
 end
