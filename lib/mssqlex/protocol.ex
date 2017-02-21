@@ -1,4 +1,13 @@
 defmodule Mssqlex.Protocol do
+  @moduledoc """
+  Implementation of `DBConnection` behaviour for `Mssqlex.ODBC`.
+
+  Handles translation of concepts to what ODBC expects and holds
+  state for a connection.
+
+  This module is not called directly, but rather through
+  other `Mssqlex` modules or `DBConnection` functions.
+  """
   use DBConnection
   alias Mssqlex.ODBC
 
@@ -11,31 +20,29 @@ defmodule Mssqlex.Protocol do
     {:ok, state :: any} | {:error, Exception.t}
   def connect(opts) do
     conn_opts = [
-      {'DRIVER', opts[:odbc_driver]},
-      {'SERVER', opts[:hostname]},
-      {'DATABASE', opts[:database]},
-      {'UID', opts[:username]},
-      {'PWD', opts[:password]}
+      {"DRIVER", opts[:odbc_driver]},
+      {"SERVER", opts[:hostname]},
+      {"DATABASE", opts[:database]},
+      {"UID", opts[:username]},
+      {"PWD", opts[:password]}
     ]
-    conn_str = Enum.reduce(conn_opts, [], fn {key, value}, acc ->
-      acc ++ key ++ '=' ++ to_charlist(value) ++ ';' end)
-
-    IO.inspect conn_str
+    conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
+      acc <> "#{key}=#{value};" end)
 
     ODBC.start_link(conn_str, [])
   end
-  #
-  # @spec checkout(state :: any) ::
-  #   {:ok, new_state :: any} | {:disconnect, Exception.t, new_state :: any}
-  # def checkout(state) do
-  #   {:ok, state}
-  # end
-  #
-  # @spec checkin(state :: any) ::
-  #   {:ok, new_state :: any} | {:disconnect, Exception.t, new_state :: any}
-  # def checkin(state) do
-  #   {:ok, state}
-  # end
+  
+  @spec checkout(state :: any) ::
+    {:ok, new_state :: any} | {:disconnect, Exception.t, new_state :: any}
+  def checkout(state) do
+    {:ok, state}
+  end
+  
+  @spec checkin(state :: any) ::
+    {:ok, new_state :: any} | {:disconnect, Exception.t, new_state :: any}
+  def checkin(state) do
+    {:ok, state}
+  end
 
   # @spec handle_begin(opts :: Keyword.t, state :: any) ::
   #   {:ok, result, new_state :: any} |
@@ -69,7 +76,11 @@ defmodule Mssqlex.Protocol do
     {:ok, result, new_state :: any} |
     {:error | :disconnect, Exception.t, new_state :: any}
   def handle_execute(query, _params, _opts, state) do
-    ODBC.query(state, query.statement, [])
+    case ODBC.query(state, query.statement, []) do
+      {:error, reason} -> {:error, reason, state}
+      {:selected, _columns, rows} -> {:ok, rows, state}
+      {:updated, rows_updated} -> {:ok, rows_updated, state}
+    end
   end
 
   # @spec handle_close(query, opts :: Keyword.t, state :: any) ::
