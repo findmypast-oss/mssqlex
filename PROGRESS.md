@@ -2,7 +2,7 @@
 Our MVP
 
 Section 1: DB Connection
-- [ ] Establish Connection
+- [x] Establish Connection
 - [ ] Close Connection
 - [ ] Ability to execute SQL statements
 - [ ] Manage Pools
