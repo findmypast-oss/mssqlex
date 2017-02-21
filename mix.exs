@@ -8,6 +8,8 @@ defmodule Mssqlex.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
+     aliases: aliases(),
+     preferred_cli_env: ["test.local": :test],
 
      # Docs
      name: "Mssqlex",
@@ -24,5 +26,14 @@ defmodule Mssqlex.Mixfile do
   defp deps do
     [{:db_connection, "~> 1.1"},
      {:ex_doc, "~> 0.15", only: :dev, runtime: false}]
+  end
+
+  defp aliases do
+    ["test.local": [&setup_env/1, "test"]]
+  end
+
+  defp setup_env(_) do
+    System.put_env("MSSQL_UID", "sa")
+    System.put_env("MSSQL_PWD", "ThePa$$word")
   end
 end
