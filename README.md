@@ -6,8 +6,14 @@ Adapter to Microsoft SQL Server. Using `DBConnection` and `ODBC`.
 
 ## Installation
 
+Mssqlex requires the [Erlang ODBC application](http://erlang.org/doc/man/odbc.html) to be installed.
+This might require the installation of an additional package depending on how you have installed
+Erlang (e.g. on Ubuntu `sudo apt-get install erlang-odbc`).
+
 Mssqlex depends on Microsoft's ODBC Driver for SQL Server. You can find installation
-instructions for your platform on [the official site](https://docs.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server).
+instructions for [Linux](https://docs.microsoft.com/en-us/sql/connect/odbc/linux/installing-the-microsoft-odbc-driver-for-sql-server-on-linux)
+or [other platforms](https://docs.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server)
+on the official site.
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 by adding `mssqlex` to your list of dependencies in `mix.exs`:
