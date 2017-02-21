@@ -9,11 +9,13 @@ defmodule Mssqlex.Protocol do
   other `Mssqlex` modules or `DBConnection` functions.
   """
   use DBConnection
+
   alias Mssqlex.ODBC
+  alias Mssqlex.Result
 
   @type query :: Mssqlex.Query.t
   @type params :: any
-  @type result :: any
+  @type result :: Result.t
   @type cursor :: any
 
   @spec connect(opts :: Keyword.t) ::
@@ -31,13 +33,13 @@ defmodule Mssqlex.Protocol do
 
     ODBC.start_link(conn_str, [])
   end
-  
+
   @spec checkout(state :: any) ::
     {:ok, new_state :: any} | {:disconnect, Exception.t, new_state :: any}
   def checkout(state) do
     {:ok, state}
   end
-  
+
   @spec checkin(state :: any) ::
     {:ok, new_state :: any} | {:disconnect, Exception.t, new_state :: any}
   def checkin(state) do
@@ -77,9 +79,12 @@ defmodule Mssqlex.Protocol do
     {:error | :disconnect, Exception.t, new_state :: any}
   def handle_execute(query, _params, _opts, state) do
     case ODBC.query(state, query.statement, []) do
-      {:error, reason} -> {:error, reason, state}
-      {:selected, _columns, rows} -> {:ok, rows, state}
-      {:updated, rows_updated} -> {:ok, rows_updated, state}
+      {:error, reason} ->
+        {:error, reason, state}
+      {:selected, _columns, rows} ->
+        {:ok, %Result{rows: rows, num_rows: Enum.count(rows)}, state}
+      {:updated, num_rows} ->
+        {:ok, %Result{num_rows: num_rows}, state}
     end
   end
 
