@@ -11,9 +11,11 @@ env:
   - MSSQL_UID=sa MSSQL_PWD=TestPa$$word
 
 before_install:
-  - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-  - curl https://packages.microsoft.com/config/ubuntu/15.10/prod.list | sudo tee -a /etc/apt/sources.list.d/mssql-release.list
-  - sudo apt-get update
-  - sudo ACCEPT_EULA=Y apt-get install msodbcsql -y
   - docker pull microsoft/mssql-server-linux
   - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=$MSSQL_PWD' -p 1433:1433 -d microsoft/mssql-server-linux
+
+install:
+  - docker build findmypast-oss/mssqlex .
+
+script:
+  - docker run --net=host findmypast-oss/mssqlex mix test

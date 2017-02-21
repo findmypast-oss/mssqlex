@@ -41,6 +41,7 @@ defmodule Mssqlex.ODBC do
     connect_opts = opts
     |> Keyword.delete_first(:conn_str)
     |> Keyword.put(:binary_strings, :on)
+    |> Keyword.put_new(:timeout, 100)
     case :odbc.connect(opts[:conn_str], connect_opts) do
       {:ok, pid} -> {:ok, pid}
       {:error, reason} when is_atom(reason) -> {:stop, reason}
