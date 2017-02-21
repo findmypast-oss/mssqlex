@@ -1,4 +1,5 @@
 defmodule Mssqlex do
+  alias Mssqlex.Query
   @moduledoc """
   Documentation for Mssqlex.
   """
@@ -25,13 +26,18 @@ defmodule Mssqlex do
   """
   @spec start_link(Keyword.t) :: {:ok, pid}
   def start_link(opts) do
-    opts
+
+    opts = opts
     |> Keyword.put_new(:odbc_driver, "{ODBC Driver 13 for SQL Server}")
-    |> Keyword.put_new(:hostname, "localhost")
-    |> Keyword.put_new(:database, "MSSQL_DB")
-    |> Keyword.put_new(:username, "MSSQL_UID")
-    |> Keyword.put_new(:password, "MSSQL_PWD")
+    |> Keyword.put_new(:hostname, System.get_env("localhost"))
+    |> Keyword.put_new(:database, System.get_env("MSSQL_DB"))
+    |> Keyword.put_new(:username, System.get_env("MSSQL_UID"))
+    |> Keyword.put_new(:password, System.get_env("MSSQL_PWD"))
 
     DBConnection.start_link(Mssqlex.Protocol, opts)
+  end
+
+  def query(conn, statement, params, opts \\ []) do
+    DBConnection.prepare_execute(conn, %Query{name: "", statement: statement}, params, opts)
   end
 end
