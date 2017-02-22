@@ -1,5 +1,4 @@
 defmodule Mssqlex do
-  alias Mssqlex.Query
   @moduledoc """
   Documentation for Mssqlex.
   """
@@ -24,6 +23,9 @@ defmodule Mssqlex do
       iex> {:ok, pid} = Mssqlex.start_link(database: "mr_microsoft")
       {:ok, #PID<0.70.0>}
   """
+
+  alias Mssqlex.Query
+
   @spec start_link(Keyword.t) :: {:ok, pid}
   def start_link(opts) do
 
@@ -37,6 +39,15 @@ defmodule Mssqlex do
     DBConnection.start_link(Mssqlex.Protocol, opts)
   end
 
+  @doc """
+  Executes a query against an MS SQL Server with ODBC.
+
+  Statement and params should be in the format required by the Erlang ODBC application.
+
+  For examples see [Using the Erlang API guide](http://www1.erlang.org/doc/apps/odbc/getting_started.html#param_query).
+  """
+  @spec query(pid(), binary(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
+    {:ok, binary(), Mssqlex.Result.t}
   def query(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute(conn, %Query{name: "", statement: statement}, params, opts)
   end
