@@ -1,6 +1,7 @@
 # Mssqlex
 
 [![Build Status](https://travis-ci.org/findmypast-oss/mssqlex.svg?branch=master)](https://travis-ci.org/findmypast-oss/mssqlex)
+[![Hex.pm](https://img.shields.io/hexpm/v/mssqlex.svg)]()
 
 Adapter to Microsoft SQL Server. Using `DBConnection` and `ODBC`.
 
