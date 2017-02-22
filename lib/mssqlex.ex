@@ -1,6 +1,10 @@
 defmodule Mssqlex do
   @moduledoc """
-  Documentation for Mssqlex.
+  Interface for interacting with MS SQL Server via an ODBC driver for Elixir.
+
+  It implements `DBConnection` behaviour, using `:odbc` to connect to the system's
+  ODBC driver. Requires MS SQL Server ODBC driver, see [README](readme.html) for installation
+  instructions.
   """
 
   @doc """

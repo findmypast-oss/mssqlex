@@ -8,13 +8,14 @@ defmodule Mssqlex.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
+     package: package(),
      aliases: aliases(),
      preferred_cli_env: ["test.local": :test],
 
      # Docs
      name: "Mssqlex",
-     source_url: "https://github.com/findmypast/mssqlex",
-     docs: [main: "Mssqlex",
+     source_url: "https://github.com/findmypast-oss/mssqlex",
+     docs: [main: "readme",
             extras: ["README.md"]]]
   end
 
@@ -26,6 +27,14 @@ defmodule Mssqlex.Mixfile do
   defp deps do
     [{:db_connection, "~> 1.1"},
      {:ex_doc, "~> 0.15", only: :dev, runtime: false}]
+  end
+
+  defp package do
+    [name: :mssqlex,
+     files: ["lib", "mix.exs", "README.md", "LICENSE"],
+     maintainers: ["Steven Blowers", "Jae Bach Hardie"],
+     licenses: ["Apache 2.0"],
+     links: %{"GitHub" => "https://github.com/findmypast-oss/mssqlex"}]
   end
 
   defp aliases do

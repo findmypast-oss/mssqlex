@@ -1,4 +1,11 @@
 defmodule Mssqlex.Query do
+  @moduledoc """
+  Implementation of `DBConnection.Query` for `Mssqlex`.
+
+  The structure is:
+    * `name` - currently not used.
+    * `statement` - SQL statement to run using `:odbc`.
+  """
 
   @type t :: %__MODULE__{
     name: iodata,
