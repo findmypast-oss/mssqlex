@@ -12,6 +12,6 @@ defmodule Mssqlex.LoginTest do
     Process.flag(:trap_exit, true)
 
     assert {:ok, pid} = Mssqlex.start_link(password: "badpass")
-    assert_receive {:EXIT, ^pid, _reason}
+    assert_receive {:EXIT, ^pid, %Mssqlex.Error{odbc_code: :invalid_authorization}}
   end
 end

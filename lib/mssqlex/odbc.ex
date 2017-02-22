@@ -11,6 +11,8 @@ defmodule Mssqlex.ODBC do
   """
   use GenServer
 
+  alias Mssqlex.Error
+
   @doc """
   Starts the connection process to the ODBC driver.
 
@@ -42,15 +44,17 @@ defmodule Mssqlex.ODBC do
     |> Keyword.delete_first(:conn_str)
     |> Keyword.put(:binary_strings, :on)
     |> Keyword.put_new(:timeout, 100)
-    case :odbc.connect(opts[:conn_str], connect_opts) do
+    case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
       {:ok, pid} -> {:ok, pid}
-      {:error, reason} when is_atom(reason) -> {:stop, reason}
-      {:error, reason} -> {:stop, to_string(reason)}
+      {:error, reason} -> {:stop, reason}
     end
   end
 
   @doc false
   def handle_call({:query, %{statement: statement}}, _from, state) do
-    {:reply, :odbc.param_query(state, to_charlist(statement), []), state}
+    {:reply, handle_errors(:odbc.param_query(state, to_charlist(statement), [])), state}
   end
+
+  defp handle_errors({:error, reason}), do: {:error, reason |> to_string |> Error.exception}
+  defp handle_errors(term), do: term
 end
