@@ -34,6 +34,11 @@ defmodule Mssqlex.Protocol do
     ODBC.start_link(conn_str, [])
   end
 
+  @spec disconnect(err :: Exception.t, state :: any) :: :ok
+  def disconnect(_error, state) do
+    :odbc.disconnect(state)
+  end
+
   @spec checkout(state :: any) ::
     {:ok, new_state :: any} | {:disconnect, Exception.t, new_state :: any}
   def checkout(state) do
@@ -123,9 +128,5 @@ defmodule Mssqlex.Protocol do
   #   {:error, "not implemented", state}
   # end
   #
-  # @spec disconnect(err :: Exception.t, state :: any) :: :ok
-  # def disconnect(_error, state) do
-  #   :odbc.disconnect(state)
-  # end
 
 end
