@@ -5,7 +5,7 @@ defmodule Mssqlex.QueryTest do
 
   setup_all do
     {:ok, pid} = Mssqlex.start_link([])
-    {:ok, _, _} = Mssqlex.query(pid, "DROP DATABASE query_test;", [])
+    Mssqlex.query(pid, "DROP DATABASE query_test;", [])
     {:ok, _, _} = Mssqlex.query(pid, "CREATE DATABASE query_test;", [])
 
     {:ok, [pid: pid]}

@@ -8,20 +8,36 @@ defmodule Mssqlex.Protocol do
   This module is not called directly, but rather through
   other `Mssqlex` modules or `DBConnection` functions.
   """
+
   use DBConnection
 
   alias Mssqlex.ODBC
   alias Mssqlex.Result
   alias Mssqlex.Error
 
-  defstruct [pid: nil, mssql: :idle]
+  defstruct [pid: nil, mssql: :idle, conn_opts: []]
 
-  @type state :: %__MODULE__{pid: pid(), mssql: :idle | :transaction}
+  @type state :: %__MODULE__{pid: pid(),
+                             mssql: :idle | :transaction,
+                             conn_opts: Keyword.t}
 
   @type query :: Mssqlex.Query.t
   @type params :: any
   @type result :: Result.t
   @type cursor :: any
+
+  @commands_not_allowed_in_transactions ["ALTER DATABASE",
+                                         "ALTER FULLTEXT CATALOG",
+                                         "ALTER FULLTEXT INDEX",
+                                         "CREATE DATABASE",
+                                         "CREATE FULLTEXT CATALOG",
+                                         "CREATE FULLTEXT INDEX",
+                                         "DROP DATABASE",
+                                         "DROP FULLTEXT CATALOG",
+                                         "DROP FULLTEXT INDEX",
+                                         "RECONFIGURE",
+                                         "RESTORE",
+                                         "BACKUP"]
 
   @spec connect(opts :: Keyword.t) ::
     {:ok, state} | {:error, Exception.t}
@@ -36,15 +52,18 @@ defmodule Mssqlex.Protocol do
     conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
       acc <> "#{key}=#{value};" end)
 
-    case ODBC.start_link(conn_str, []) do
-      {:ok, pid} -> {:ok, %__MODULE__{pid: pid}}
+    case ODBC.start_link(conn_str, opts) do
+      {:ok, pid} -> {:ok, %__MODULE__{pid: pid, conn_opts: opts}}
       response -> response
     end
   end
 
   @spec disconnect(err :: Exception.t, state) :: :ok
-  def disconnect(_error, %{pid: pid}) do
-    :odbc.disconnect(pid)
+  def disconnect(_error, state = %{pid: pid}) do
+    case ODBC.disconnect(pid) do
+      :ok -> :ok
+      {:error, reason} -> {:error, reason, state}
+    end
   end
 
   @spec checkout(state) ::
@@ -73,15 +92,21 @@ defmodule Mssqlex.Protocol do
   @spec handle_commit(opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
-  def handle_commit(_opts, state) do
-    ODBC.commit(state)
+  def handle_commit(_opts, state = %{pid: pid}) do
+    case ODBC.commit(pid) do
+      :ok -> {:ok, %Result{}, state}
+      {:error, reason} -> {:error, reason, state}
+    end
   end
 
   @spec handle_rollback(opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
-  def handle_rollback(_opts, state) do
-    ODBC.rollback(state)
+  def handle_rollback(_opts, state = %{pid: pid}) do
+    case ODBC.rollback(pid) do
+      :ok -> {:ok, %Result{}, state}
+      {:error, reason} -> {:error, reason. state}
+    end
   end
 
   @spec handle_prepare(query, opts :: Keyword.t, state) ::
@@ -94,8 +119,16 @@ defmodule Mssqlex.Protocol do
   @spec handle_execute(query, params, opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
-  def handle_execute(query, _params, _opts, state) do
-    response = case ODBC.query(state.pid, query.statement, []) do
+  def handle_execute(query, params, opts, state) do
+    {status, message, new_state} = case ODBC.query(state.pid, query.statement, params) do
+      {:error, %Mssqlex.Error{odbc_code: :not_allowed_in_transaction} = reason} ->
+        if state.mssql !== :auto_commit do
+          :ok = disconnect(reason, state)
+          {:ok, new_state} = connect(Keyword.put(state.conn_opts, :auto_commit, :on))
+          handle_execute(query, params, opts, Map.put(new_state, :mssql, :auto_commit))
+        else
+          {:error, reason, state}
+        end
       {:error, reason} ->
         {:error, reason, state}
       {:selected, _columns, rows} ->
@@ -103,11 +136,20 @@ defmodule Mssqlex.Protocol do
       {:updated, num_rows} ->
         {:ok, %Result{num_rows: num_rows}, state}
     end
-    if state.mssql == :idle do
-      with :ok <- ODBC.commit(state.pid),
-      do: response
-    else
-      response
+
+    case new_state.mssql do
+      :idle ->
+        with {:ok, _, post_commit_state} <- handle_commit(opts, new_state)
+        do
+          {status, message, post_commit_state}
+        end
+      :transaction -> {status, message, new_state}
+      :auto_commit ->
+        with :ok <- disconnect(:restart_connection, new_state),
+             {:ok, post_connect_state} <- connect(Keyword.put(new_state.conn_opts, :auto_commit, :off))
+        do
+          {status, message, post_connect_state}
+        end
     end
   end
 

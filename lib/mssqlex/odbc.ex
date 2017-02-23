@@ -9,9 +9,12 @@ defmodule Mssqlex.ODBC do
   It is used by `Mssqlex.Protocol` and should not generally be
   accessed directly.
   """
+
   use GenServer
 
   alias Mssqlex.Error
+
+  ## Public API
 
   @doc """
   Starts the connection process to the ODBC driver.
@@ -40,15 +43,25 @@ defmodule Mssqlex.ODBC do
     GenServer.call(pid, :commit)
   end
 
-  # GenServer callbacks
+  def rollback(pid) do
+    GenServer.call(pid, :rollback)
+  end
+
+  def disconnect(pid) do
+    rollback(pid)
+    GenServer.call(pid, :disconnect)
+  end
+
+  ## GenServer callbacks
 
   @doc false
   def init(opts) do
     connect_opts = opts
     |> Keyword.delete_first(:conn_str)
     |> Keyword.put(:binary_strings, :on)
-    |> Keyword.put(:auto_commit, :off)
+    |> Keyword.put_new(:auto_commit, :off)
     |> Keyword.put_new(:timeout, 100)
+
     case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
       {:ok, pid} -> {:ok, pid}
       {:error, reason} -> {:stop, reason}
@@ -60,8 +73,19 @@ defmodule Mssqlex.ODBC do
     {:reply, handle_errors(:odbc.param_query(state, to_charlist(statement), [])), state}
   end
 
+  @doc false
   def handle_call(:commit, _from, state) do
-    {:reply, :odbc.commit(state, :commit), state}
+    {:reply, handle_errors(:odbc.commit(state, :commit)), state}
+  end
+
+  @doc false
+  def handle_call(:rollback, _from, state) do
+    {:reply, handle_errors(:odbc.commit(state, :rollback)), state}
+  end
+
+  @doc false
+  def handle_call(:disconnect, _from, state) do
+    {:reply, handle_errors(:odbc.disconnect(state)), state}
   end
 
   defp handle_errors({:error, reason}), do: {:error, reason |> to_string |> Error.exception}
