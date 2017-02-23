@@ -10,7 +10,7 @@ defmodule Mssqlex.TransactionTest do
 
     {:ok, [pid: pid]}
   end
-  # 
+  #
   # test "simple transaction test", %{pid: pid} do
   #   DBConnection.
   # end
