@@ -36,6 +36,10 @@ defmodule Mssqlex.ODBC do
     GenServer.call(pid, {:query, %{statement: statement, params: params}})
   end
 
+  def commit(pid) do
+    GenServer.call(pid, :commit)
+  end
+
   # GenServer callbacks
 
   @doc false
@@ -43,6 +47,7 @@ defmodule Mssqlex.ODBC do
     connect_opts = opts
     |> Keyword.delete_first(:conn_str)
     |> Keyword.put(:binary_strings, :on)
+    |> Keyword.put(:auto_commit, :off)
     |> Keyword.put_new(:timeout, 100)
     case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
       {:ok, pid} -> {:ok, pid}
@@ -53,6 +58,10 @@ defmodule Mssqlex.ODBC do
   @doc false
   def handle_call({:query, %{statement: statement}}, _from, state) do
     {:reply, handle_errors(:odbc.param_query(state, to_charlist(statement), [])), state}
+  end
+
+  def handle_call(:commit, _from, state) do
+    {:reply, :odbc.commit(state, :commit), state}
   end
 
   defp handle_errors({:error, reason}), do: {:error, reason |> to_string |> Error.exception}
