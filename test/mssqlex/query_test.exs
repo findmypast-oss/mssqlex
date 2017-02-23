@@ -16,7 +16,7 @@ defmodule Mssqlex.QueryTest do
       Mssqlex.query(pid, "CREATE TABLE query_test.dbo.simple_select (name varchar(50));", [])
 
     assert {:ok, _, %Result{num_rows: 1}} =
-      Mssqlex.query(pid, "INSERT INTO query_test.dbo.simple_select VALUES ('Steven');", [])
+      Mssqlex.query(pid, ["INSERT INTO query_test.dbo.simple_select VALUES ('Steven');"], [])
 
     assert {:ok, _, %Result{num_rows: 1, rows: [{"Steven"}]}} =
       Mssqlex.query(pid, "SELECT * FROM query_test.dbo.simple_select;", [])

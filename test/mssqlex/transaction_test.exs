@@ -10,7 +10,7 @@ defmodule Mssqlex.TransactionTest do
 
     {:ok, [pid: pid]}
   end
-  
+
   test "simple transaction test", %{pid: pid} do
     assert {:ok, %Result{}} = DBConnection.transaction(pid, fn pid ->
       {:ok, _, _} = Mssqlex.query(pid, "CREATE TABLE transaction_test.dbo.simple_transaction (name varchar(50));", [])

@@ -34,9 +34,9 @@ defmodule Mssqlex.ODBC do
   Interface to `:odbc.param_query/3`. See [Erlang's ODBC guide](http://erlang.org/doc/apps/odbc/getting_started.html)
   for usage details and examples.
   """
-  @spec query(pid(), binary(), Keyword.t) :: {:selected, [binary()], [tuple()] | {:updated, non_neg_integer()}} | {:error, Exception.t}
+  @spec query(pid(), iodata(), Keyword.t) :: {:selected, [binary()], [tuple()] | {:updated, non_neg_integer()}} | {:error, Exception.t}
   def query(pid, statement, params) do
-    GenServer.call(pid, {:query, %{statement: statement, params: params}})
+    GenServer.call(pid, {:query, %{statement: IO.iodata_to_binary(statement), params: params}})
   end
 
   @doc """
