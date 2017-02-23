@@ -39,17 +39,36 @@ defmodule Mssqlex.ODBC do
     GenServer.call(pid, {:query, %{statement: statement, params: params}})
   end
 
+  @doc """
+  Commits a transaction on the ODBC driver.
+
+  Note that unless in autocommit mode, all queries are wrapped in
+  implicit transactions and must be committed.
+  """
+  @spec commit(pid()) :: :ok | {:error, Exception.t}
   def commit(pid) do
     GenServer.call(pid, :commit)
   end
 
+  @doc """
+  Rolls back a transaction on the ODBC driver.
+  """
+  @spec rollback(pid()) :: :ok | {:error, Exception.t}
   def rollback(pid) do
     GenServer.call(pid, :rollback)
   end
 
+  @doc """
+  Disconnects from the ODBC driver.
+
+  Attempts to roll back any pending transactions. If a pending
+  transaction cannot be rolled back the disconnect still
+  happens without any changes being committed.
+  """
+  @spec disconnect(pid()) :: :ok
   def disconnect(pid) do
     rollback(pid)
-    GenServer.call(pid, :disconnect)
+    GenServer.stop(pid, :normal)
   end
 
   ## GenServer callbacks
@@ -84,8 +103,8 @@ defmodule Mssqlex.ODBC do
   end
 
   @doc false
-  def handle_call(:disconnect, _from, state) do
-    {:reply, handle_errors(:odbc.disconnect(state)), state}
+  def terminate(_reason, state) do
+    :odbc.disconnect(state)
   end
 
   defp handle_errors({:error, reason}), do: {:error, reason |> to_string |> Error.exception}

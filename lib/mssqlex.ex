@@ -55,4 +55,9 @@ defmodule Mssqlex do
   def query(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute(conn, %Query{name: "", statement: statement}, params, opts)
   end
+  @spec query(pid(), binary(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
+    {binary(), Mssqlex.Result.t}
+  def query!(conn, statement, params, opts \\ []) do
+    DBConnection.prepare_execute!(conn, %Query{name: "", statement: statement}, params, opts)
+  end
 end

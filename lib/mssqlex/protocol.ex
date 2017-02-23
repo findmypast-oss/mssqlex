@@ -13,7 +13,6 @@ defmodule Mssqlex.Protocol do
 
   alias Mssqlex.ODBC
   alias Mssqlex.Result
-  alias Mssqlex.Error
 
   defstruct [pid: nil, mssql: :idle, conn_opts: []]
 
@@ -25,19 +24,6 @@ defmodule Mssqlex.Protocol do
   @type params :: any
   @type result :: Result.t
   @type cursor :: any
-
-  @commands_not_allowed_in_transactions ["ALTER DATABASE",
-                                         "ALTER FULLTEXT CATALOG",
-                                         "ALTER FULLTEXT INDEX",
-                                         "CREATE DATABASE",
-                                         "CREATE FULLTEXT CATALOG",
-                                         "CREATE FULLTEXT INDEX",
-                                         "DROP DATABASE",
-                                         "DROP FULLTEXT CATALOG",
-                                         "DROP FULLTEXT INDEX",
-                                         "RECONFIGURE",
-                                         "RESTORE",
-                                         "BACKUP"]
 
   @spec connect(opts :: Keyword.t) ::
     {:ok, state} | {:error, Exception.t}
@@ -81,10 +67,6 @@ defmodule Mssqlex.Protocol do
   @spec handle_begin(opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
-  def handle_begin(_opts, %{mssql: :transaction} = state) do
-    {:error, %Error{message: "already in transaction"}, state}
-  end
-
   def handle_begin(_opts, state) do
     {:ok, %Result{num_rows: 0}, Map.put(state, :mssql, :transaction)}
   end

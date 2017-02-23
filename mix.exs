@@ -21,8 +21,7 @@ defmodule Mssqlex.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger, :odbc],
-     mod: {Mssqlex.Application, []}]
+    [extra_applications: [:logger, :odbc]]
   end
 
   defp deps do
