@@ -3,6 +3,7 @@ defmodule Mssqlex.LoginTest do
 
   alias Mssqlex.Result
 
+  @tag :only
   test "Given valid details, connects to database" do
     assert {:ok, pid} = Mssqlex.start_link([])
     assert {:ok, _, %Result{num_rows: 1, rows: [{"test"}]}} = Mssqlex.query(pid, "SELECT 'test'", [])

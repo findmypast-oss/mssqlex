@@ -88,8 +88,8 @@ defmodule Mssqlex.ODBC do
   end
 
   @doc false
-  def handle_call({:query, %{statement: statement}}, _from, state) do
-    {:reply, handle_errors(:odbc.param_query(state, to_charlist(statement), [])), state}
+  def handle_call({:query, %{statement: statement, params: params}}, _from, state) do
+    {:reply, handle_errors(:odbc.param_query(state, to_charlist(statement), params)), state}
   end
 
   @doc false

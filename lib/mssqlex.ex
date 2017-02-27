@@ -50,12 +50,12 @@ defmodule Mssqlex do
 
   For examples see [Using the Erlang API guide](http://www1.erlang.org/doc/apps/odbc/getting_started.html#param_query).
   """
-  @spec query(pid(), iodata(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
+  @spec query(pid(), Query.t(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
     {:ok, iodata(), Mssqlex.Result.t}
   def query(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute(conn, %Query{name: "", statement: statement}, params, opts)
   end
-  @spec query(pid(), iodata(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
+  @spec query(pid(), Query.t(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
     {iodata(), Mssqlex.Result.t}
   def query!(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute!(conn, %Query{name: "", statement: statement}, params, opts)

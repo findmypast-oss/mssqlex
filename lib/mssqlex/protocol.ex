@@ -135,13 +135,13 @@ defmodule Mssqlex.Protocol do
     end
   end
 
-  # @spec handle_close(query, opts :: Keyword.t, state) ::
-  #   {:ok, result, state} |
-  #   {:error | :disconnect, Exception.t, state}
-  # def handle_close(_query, _opts, state) do
-  #   {:error, "not implemented", state}
-  # end
-  #
+  @spec handle_close(query, opts :: Keyword.t, state) ::
+    {:ok, result, state} |
+    {:error | :disconnect, Exception.t, state}
+  def handle_close(_query, _opts, state) do
+    {:ok, %Result{}, state}
+  end
+  
   # @spec handle_declare(query, params, opts :: Keyword.t, state) ::
   #   {:ok, cursor, state} |
   #   {:error | :disconnect, Exception.t, state}
