@@ -17,7 +17,7 @@ defmodule Mssqlex.TransactionTest do
       {:ok, _, result} = Mssqlex.query(pid, "INSERT INTO transaction_test.dbo.simple_transaction VALUES ('Steven');", [])
       result
     end)
-    assert {:ok, _query, %Result{rows: [{"Steven"}]}} =
+    assert {:ok, _query, %Result{rows: [["Steven"]]}} =
       Mssqlex.query(pid, "SELECT * from transaction_test.dbo.simple_transaction;", [])
   end
 
@@ -34,7 +34,7 @@ defmodule Mssqlex.TransactionTest do
       end)
       result
     end)
-    assert {:ok, _query, %Result{rows: [{"Steven"}, {"Jae"}]}} =
+    assert {:ok, _query, %Result{rows: [["Steven"], ["Jae"]]}} =
       Mssqlex.query(pid, "SELECT * from transaction_test.dbo.nested_transaction;", [])
   end
 
