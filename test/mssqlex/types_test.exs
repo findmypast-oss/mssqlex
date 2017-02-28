@@ -1,5 +1,5 @@
 defmodule Mssqlex.TypesTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias Mssqlex.Result
 
@@ -39,6 +39,11 @@ defmodule Mssqlex.TypesTest do
   test "sql_numeric(5, 2)", %{pid: pid} do
     assert {_query, %Result{rows: [[123.45]]}} =
       act(pid, "numeric(5, 2)", [{{:sql_numeric, 5, 2}, ["123.45"]}])
+  end
+
+  test "sql_decimal(7, 0)", %{pid: pid} do
+    assert {_query, %Result{rows: [[1234567]]}} =
+      act(pid, "decimal(7)", [{{:sql_decimal, 7, 0}, ["1234567"]}])
   end
 
   defp act(pid, type, params) do
