@@ -46,6 +46,21 @@ defmodule Mssqlex.TypesTest do
       act(pid, "decimal(7)", [{{:sql_decimal, 7, 0}, ["1234567"]}])
   end
 
+  test "sql_decimal(13, 0)", %{pid: pid} do
+    assert {_query, %Result{rows: [[1234567890123.0]]}} =
+      act(pid, "decimal(13)", [{{:sql_decimal, 13, 0}, ["1234567890123"]}])
+  end
+
+  # test "sql_decimal(32, 0)", %{pid: pid} do
+  #   assert {_query, %Result{rows: [[12345678901234567890123456789012]]}} =
+  #     act(pid, "decimal(32)", [{{:sql_decimal, 32, 0}, ["12345678901234567890123456789012"]}])
+  # end
+
+  test "sql_decimal(7, 3)", %{pid: pid} do
+    assert {_query, %Result{rows: [[1234.567]]}} =
+      act(pid, "decimal(7, 3)", [{{:sql_decimal, 7, 3}, ["1234.567"]}])
+  end
+
   defp act(pid, type, params) do
     Mssqlex.query!(pid, "CREATE TABLE types_test.dbo.\"#{Base.url_encode64 type}\" (test #{type})", [])
     Mssqlex.query!(pid, "INSERT INTO types_test.dbo.\"#{Base.url_encode64 type}\" VALUES (?)", params)
