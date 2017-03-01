@@ -18,4 +18,4 @@ RUN mix local.hex --force && \
 COPY . /usr/src/app
 WORKDIR /usr/src/app
 RUN mix do deps.get
-
+RUN chmod +x /usr/src/app/wait-for-it.sh 
