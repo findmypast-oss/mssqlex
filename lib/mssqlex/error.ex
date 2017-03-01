@@ -28,7 +28,7 @@ defmodule Mssqlex.Error do
     }
   end
 
-  defp get_code({odbc_code, native_code, reason}) do
+  defp get_code({odbc_code, native_code, _reason}) do
     cond do
       native_code in @not_allowed_in_transaction_messages ->
         :not_allowed_in_transaction
