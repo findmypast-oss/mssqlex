@@ -6,12 +6,13 @@ services:
 env:
   - MSSQL_UID=sa MSSQL_PWD=TestPa$$word
 
-before_install:
-  - docker pull microsoft/mssql-server-linux
-  - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=$MSSQL_PWD' -p 1433:1433 -d microsoft/mssql-server-linux
+# before_install:
+#   - docker pull microsoft/mssql-server-linux
+#   - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=$MSSQL_PWD' -p 1433:1433 -d microsoft/mssql-server-linux
 
 install:
-  - docker build -t findmypast-oss/mssqlex .
+  - docker-compose build
 
 script:
-  - docker run --net=host findmypast-oss/mssqlex mix test
+  # - docker run --net=host findmypast-oss/mssqlex mix test
+  - docker-compose run

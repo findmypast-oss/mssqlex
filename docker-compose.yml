@@ -1,0 +1,13 @@
+version: '2'
+services:
+  sql-server:
+    image: microsoft/mssql-server-linux
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=$MSSQL_PWD
+
+  mssqlex:
+    build: .
+    command: mix test
