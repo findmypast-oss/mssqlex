@@ -1,15 +1,17 @@
 version: '2'
 services:
-  sql-server:
+  sql_server:
     image: microsoft/mssql-server-linux
-    ports:
-      - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=$MSSQL_PWD
 
   mssqlex:
     build: .
+    environment:
+      - MSSQL_UID=$MSSQL_UID
+      - MSSQL_PWD=$MSSQL_PWD
+      - MSSQL_HST=sql_server
     depends_on:
-      - sql-server
+      - sql_server
     command: mix test

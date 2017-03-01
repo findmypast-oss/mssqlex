@@ -35,7 +35,7 @@ defmodule Mssqlex do
 
     opts = opts
     |> Keyword.put_new(:odbc_driver, "{ODBC Driver 13 for SQL Server}")
-    |> Keyword.put_new(:hostname, "localhost")
+    |> Keyword.put_new(:hostname, System.get_env("MSSQL_HST") || "localhost")
     |> Keyword.put_new(:database, System.get_env("MSSQL_DB"))
     |> Keyword.put_new(:username, System.get_env("MSSQL_UID"))
     |> Keyword.put_new(:password, System.get_env("MSSQL_PWD"))
