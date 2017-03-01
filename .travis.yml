@@ -3,9 +3,6 @@ sudo: required
 services:
   - docker
 
-env:
-  - MSSQL_UID=sa MSSQL_PWD=TestPa$$word
-
 install:
   - docker-compose build mssqlex
 
