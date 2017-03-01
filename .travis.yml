@@ -15,7 +15,7 @@ before_install:
   - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=$MSSQL_PWD' -p 1433:1433 -d microsoft/mssql-server-linux
 
 install:
-  - docker build findmypast-oss/mssqlex .
+  - docker build .
 
 script:
   - docker run --net=host findmypast-oss/mssqlex mix test
