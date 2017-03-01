@@ -67,3 +67,9 @@ defimpl DBConnection.Query, for: Mssqlex.Query do
 
   defp encode_type(_type, value), do: value
 end
+
+defimpl String.Chars, for: Mssqlex.Query do
+  def to_string(%Mssqlex.Query{statement: statement}) do
+    IO.iodata_to_binary(statement)
+  end
+end
