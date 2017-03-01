@@ -5,7 +5,7 @@ defmodule Mssqlex.TransactionTest do
 
   setup_all do
     {:ok, pid} = Mssqlex.start_link([])
-    Mssqlex.query(pid, "DROP DATABASE transaction_test;", [])
+    Mssqlex.query!(pid, "DROP DATABASE IF EXISTS transaction_test;", [])
     {:ok, _, _} = Mssqlex.query(pid, "CREATE DATABASE transaction_test;", [])
 
     {:ok, [pid: pid]}

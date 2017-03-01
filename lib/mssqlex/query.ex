@@ -29,28 +29,15 @@ defimpl DBConnection.Query, for: Mssqlex.Query do
       {type, Enum.map(values, &(encode_type(type, &1)))} end)
   end
 
-  def decode(_query, %Result{rows: nil} = result, _opts), do: result
-  def decode(_query, %Result{rows: rows} = result, _opts) do
-    rows = Enum.map(rows, fn(row) ->
-      row
-      |> Tuple.to_list
-      |> Enum.map(&decode_cell/1)
-    end)
-
-    Map.put(result, :rows, rows)
+  def decode(_query, %Result{rows: rows} = result, _opts) when not is_nil(rows) do
+    Map.put(result, :rows, Enum.map(rows, fn row -> Enum.map(row, &decode_cell/1) end))
   end
+  def decode(_query, result, _opts), do: result
 
-  defp decode_cell(value) when is_binary value do
-    if String.valid?(value) do
-      value
-    else
-      case :unicode.characters_to_binary(value, {:utf16, :little}) do
-        {:error, _, _} -> value
-        unicode_binary -> unicode_binary
-      end
-    end
+  def decode_cell(value) when is_list(value) do
+    IO.iodata_to_binary value
   end
-  defp decode_cell(value), do: value
+  def decode_cell(value), do: value
 
   defp encode_type({string_type, _}, value) when string_type in @unicode_types do
     :unicode.characters_to_binary(value, :unicode, {:utf16, :little})
@@ -72,6 +59,10 @@ defimpl DBConnection.Query, for: Mssqlex.Query do
   do
     {float, ""} = Float.parse(value)
     float
+  end
+
+  defp encode_type(_, value) when is_binary(value) do
+    to_charlist(value)
   end
 
   defp encode_type(_type, value), do: value

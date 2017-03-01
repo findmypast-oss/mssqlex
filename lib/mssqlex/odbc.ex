@@ -77,9 +77,10 @@ defmodule Mssqlex.ODBC do
   def init(opts) do
     connect_opts = opts
     |> Keyword.delete_first(:conn_str)
-    |> Keyword.put(:binary_strings, :on)
     |> Keyword.put_new(:auto_commit, :off)
-    |> Keyword.put_new(:timeout, 100)
+    |> Keyword.put_new(:timeout, 5000)
+    |> Keyword.put_new(:extended_errors, :on)
+    |> Keyword.put_new(:tuple_row, :off)
 
     case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
       {:ok, pid} -> {:ok, pid}
@@ -107,6 +108,6 @@ defmodule Mssqlex.ODBC do
     :odbc.disconnect(state)
   end
 
-  defp handle_errors({:error, reason}), do: {:error, reason |> to_string |> Error.exception}
+  defp handle_errors({:error, reason}), do: {:error, reason |> Error.exception}
   defp handle_errors(term), do: term
 end

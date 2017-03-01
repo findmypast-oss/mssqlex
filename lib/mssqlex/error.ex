@@ -13,26 +13,31 @@ defmodule Mssqlex.Error do
     odbc_code: atom() | binary()
   }
 
-  @not_allowed_in_transaction_messages ["statement cannot be used inside a user transaction",
-                                        "statement not allowed within multi-statement transaction"]
+  @not_allowed_in_transaction_messages [226, 574]
 
   @spec exception(binary()) :: t()
-  def exception(message) do
+  def exception({_, _, reason} = message) do
     %__MODULE__{
-      message: message,
+      message: to_string(reason),
       odbc_code: get_code(message)
     }
   end
+  def exception(message) do
+    %__MODULE__{
+      message: to_string(message)
+    }
+  end
 
-  defp get_code(message) do
+  defp get_code({odbc_code, native_code, reason}) do
     cond do
-      String.contains?(message, @not_allowed_in_transaction_messages) ->
+      native_code in @not_allowed_in_transaction_messages ->
         :not_allowed_in_transaction
-      (result = Regex.run(~r/SQLSTATE IS: (.{5})/, message)) !== nil ->
-        translate(Enum.at(result, 1))
+      odbc_code !== nil ->
+        translate(to_string odbc_code)
       true -> :unknown
     end
   end
+  defp get_code(_), do: :unknown
 
   defp translate("42S01"), do: :base_table_or_view_already_exists
   defp translate("42S02"), do: :base_table_or_view_not_found
