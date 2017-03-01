@@ -10,4 +10,6 @@ services:
 
   mssqlex:
     build: .
+    depends_on:
+      - sql-server
     command: mix test
