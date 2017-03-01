@@ -11,7 +11,12 @@ defmodule Mssqlex.Mixfile do
      deps: deps(),
      package: package(),
      aliases: aliases(),
-     preferred_cli_env: ["test.local": :test],
+
+     # Testing
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: ["test.local": :test,
+                         "coveralls": :test,
+                         "coveralls.travis": :test],
 
      # Docs
      name: "Mssqlex",
@@ -26,7 +31,8 @@ defmodule Mssqlex.Mixfile do
 
   defp deps do
     [{:db_connection, "~> 1.1"},
-     {:ex_doc, "~> 0.15", only: :dev, runtime: false}]
+     {:ex_doc, "~> 0.15", only: :dev, runtime: false},
+     {:excoveralls, "~> 0.6", only: :test}]
   end
 
   defp package do
