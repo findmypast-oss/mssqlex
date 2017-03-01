@@ -1,5 +1,5 @@
 defmodule Mssqlex.LoginTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Mssqlex.Result
 
