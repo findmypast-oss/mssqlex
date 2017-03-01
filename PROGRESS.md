@@ -1,4 +1,3 @@
-
 Our MVP
 
 Section 1: DB Connection
