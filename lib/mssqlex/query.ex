@@ -38,13 +38,9 @@ defimpl DBConnection.Query, for: Mssqlex.Query do
     IO.iodata_to_binary value
   end
   defp decode_cell(value) when is_binary(value) do
-    if String.valid?(value) do
-      value
-    else
-      case :unicode.characters_to_binary(value, {:utf16, :little}) do
-        {:error, _, _} -> value
-        unicode_binary -> unicode_binary
-      end
+    case :unicode.characters_to_binary(value, {:utf16, :little}) do
+      {:error, _, _} -> value
+      unicode_binary -> unicode_binary
     end
   end
   defp decode_cell(value), do: value
