@@ -1,5 +1,6 @@
 defmodule Mssqlex.TypesTest do
   use ExUnit.Case, async: true
+  @moduletag :only
 
   alias Mssqlex.Result
 
@@ -11,126 +12,123 @@ defmodule Mssqlex.TypesTest do
     {:ok, [pid: pid]}
   end
 
-  test "sql_char", %{pid: pid} do
+  test "char", %{pid: pid} do
     assert {_query, %Result{rows: [["Nathan"]]}} =
-      act(pid, "char(6)", [{{:sql_char, 6}, ["Nathan"]}])
+      act(pid, "char(6)", ["Nathan"])
   end
 
-  test "sql_wchar", %{pid: pid} do
+  test "nchar", %{pid: pid} do
     assert {_query, %Result{rows: [["e→øæ"]]}} =
-      act(pid, "nchar(4)", [{{:sql_wchar, 4}, ["e→øæ"]}])
+      act(pid, "nchar(4)", ["e→øæ"])
   end
 
-  test "sql_varchar", %{pid: pid} do
+  test "varchar", %{pid: pid} do
     assert {_query, %Result{rows: [["Nathan"]]}} =
-      act(pid, "varchar(6)", [{{:sql_varchar, 6}, ["Nathan"]}])
+      act(pid, "varchar(6)", ["Nathan"])
   end
 
-  test "sql_wvarchar", %{pid: pid} do
+  test "nvarchar", %{pid: pid} do
     assert {_query, %Result{rows: [["e→øæ"]]}} =
-      act(pid, "nvarchar(4)", [{{:sql_wvarchar, 4}, ["e→øæ"]}])
+      act(pid, "nvarchar(4)", ["e→øæ"])
   end
 
-  test "sql_numeric(9, 0)", %{pid: pid} do
-    assert {_query, %Result{rows: [[34]]}} =
-      act(pid, "numeric(9)", [{{:sql_numeric, 9, 0}, ["34"]}])
+  test "numeric(9, 0) as integer", %{pid: pid} do
+    assert {_query, %Result{rows: [[123456789]]}} =
+      act(pid, "numeric(9)", [123456789])
   end
 
-  test "sql_numeric(10, 0)", %{pid: pid} do
-    assert {_query, %Result{rows: [[1234567890.0]]}} =
-      act(pid, "numeric(10)", [{{:sql_numeric, 10, 0}, ["1234567890"]}])
+  test "numeric(8, 0) as decimal", %{pid: pid} do
+    assert {_query, %Result{rows: [[12345678]]}} =
+      act(pid, "numeric(8)", [Decimal.new(12345678)])
   end
 
-  test "sql_numeric(38, 0)", %{pid: pid} do
+  test "sql_numeric(15, 0) as decimal", %{pid: pid} do
+    number = Decimal.new("123456789012345")
+    assert {_query, %Result{rows: [[%Decimal{} = value]]}} =
+      act(pid, "numeric(15)", [number])
+    assert Decimal.equal?(number, value)
+  end
+
+  test "sql_numeric(38, 0) as decimal", %{pid: pid} do
+    number = Decimal.new("12345678901234567890123456789012345678")
     assert {_query, %Result{rows: [["12345678901234567890123456789012345678"]]}} =
-      act(pid, "numeric(38, 0)", [{{:sql_numeric, 38, 0}, ["12345678901234567890123456789012345678"]}])
+      act(pid, "numeric(38)", [number])
   end
 
-  test "sql_numeric(5, 2)", %{pid: pid} do
-    assert {_query, %Result{rows: [[123.45]]}} =
-      act(pid, "numeric(5, 2)", [{{:sql_numeric, 5, 2}, ["123.45"]}])
+  test "sql_numeric(36, 0) as string", %{pid: pid} do
+    number = "123456789012345678901234567890123456"
+    assert {_query, %Result{rows: [["123456789012345678901234567890123456"]]}} =
+      act(pid, "numeric(36)", [number])
   end
 
-  test "sql_decimal(7, 0)", %{pid: pid} do
-    assert {_query, %Result{rows: [[1234567]]}} =
-      act(pid, "decimal(7)", [{{:sql_decimal, 7, 0}, ["1234567"]}])
-  end
-
-  test "sql_decimal(13, 0)", %{pid: pid} do
-    assert {_query, %Result{rows: [[1234567890123.0]]}} =
-      act(pid, "decimal(13)", [{{:sql_decimal, 13, 0}, ["1234567890123"]}])
-  end
-
-  test "sql_decimal(32, 0)", %{pid: pid} do
-    assert {_query, %Result{rows: [["12345678901234567890123456789012"]]}} =
-      act(pid, "decimal(32)", [{{:sql_decimal, 32, 0}, ["12345678901234567890123456789012"]}])
-  end
-
-  test "sql_decimal(7, 3)", %{pid: pid} do
-    assert {_query, %Result{rows: [[1234.567]]}} =
-      act(pid, "decimal(7, 3)", [{{:sql_decimal, 7, 3}, ["1234.567"]}])
-  end
-
-  test "bigint (as sql_numeric)", %{pid: pid} do
-    assert {_query, %Result{rows: [["-9223372036854775808"], ["9223372036854775807"]]}} =
-      act(pid, "bigint", [{{:sql_numeric, 19, 0}, ["-9223372036854775808", "9223372036854775807"]}])
-  end
-
-  test "sql_integer", %{pid: pid} do
-    assert {_query, %Result{rows: [[2_147_483_647], [-2_147_483_648]]}} =
-      act(pid, "int", [{:sql_integer, [2_147_483_647, -2_147_483_648]}])
-  end
-
-  test "sql_smallint", %{pid: pid} do
-    assert {_query, %Result{rows: [[-32_768], [32_767]]}} =
-      act(pid, "smallint", [{:sql_integer, [-32_768, 32_767]}])
-  end
-
-  test "sql_tinyint", %{pid: pid} do
-    assert {_query, %Result{rows: [[0], [255]]}} =
-      act(pid, "tinyint", [{:sql_integer, [0, 255]}])
-  end
-
-  test "sql_real", %{pid: pid} do
+  test "sql_numeric(5, 2) as decimal", %{pid: pid} do
+    number = Decimal.new("123.45")
     assert {_query, %Result{rows: [[value]]}} =
-      act(pid, "real", [{:sql_real, [12345.67]}])
-    assert 12345.67 = Float.round(value, 2)
+      act(pid, "numeric(5,2)", [number])
+    assert Decimal.equal?(number, value)
   end
 
-  test "sql_float(24)", %{pid: pid} do
+  test "sql_numeric(6, 3) as float", %{pid: pid} do
+    number = Decimal.new("123.456")
     assert {_query, %Result{rows: [[value]]}} =
-      act(pid, "float(24)", [{{:sql_float, 24}, [12345.67]}])
-    assert 12345.67 = Float.round(value, 2)
+      act(pid, "numeric(6,3)", [123.456])
+    assert Decimal.equal?(number, value)
   end
 
-  test "sql_double", %{pid: pid} do
-    assert {_query, %Result{rows: [[1234567890.12345]]}} =
-      act(pid, "double precision", [{:sql_double, [1234567890.12345]}])
+  test "bigint", %{pid: pid} do
+    number = Decimal.new "-9223372036854775808"
+    assert {_query, %Result{rows: [["-9223372036854775808"]]}} =
+      act(pid, "bigint", [number])
   end
 
-  test "sql_float(53)", %{pid: pid} do
-    assert {_query, %Result{rows: [[1234567890.12345]]}} =
-      act(pid, "float(53)", [{{:sql_float, 53}, [1234567890.12345]}])
+  test "int", %{pid: pid} do
+    assert {_query, %Result{rows: [[2_147_483_647]]}} =
+      act(pid, "int", [2_147_483_647])
   end
 
-  test "smalldatetime (as varchar)", %{pid: pid} do
+  test "smallint", %{pid: pid} do
+    assert {_query, %Result{rows: [[32_767]]}} =
+      act(pid, "smallint", [32_767])
+  end
+
+  test "tinyint", %{pid: pid} do
+    assert {_query, %Result{rows: [[255]]}} =
+      act(pid, "tinyint", [255])
+  end
+
+  test "smalldatetime as tuple", %{pid: pid} do
     assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
-      act(pid, "smalldatetime", [{{:sql_varchar, 19}, ["2017-01-01 12:10:00"]}])
+      act(pid, "smalldatetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
-  test "datetime (as varchar)", %{pid: pid} do
+  test "datetime as tuple", %{pid: pid} do
     assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
-      act(pid, "datetime", [{{:sql_varchar, 23}, ["2017-01-01 12:10:00.99"]}])
+      act(pid, "datetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
-  test "datetime2 (as varchar)", %{pid: pid} do
+  test "datetime2 as tuple", %{pid: pid} do
     assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
-      act(pid, "datetime2", [{{:sql_varchar, 27}, ["2017-01-01 12:10:00.9999997"]}])
+      act(pid, "datetime2", [{{2017, 1, 1}, {12, 10, 0, 54}}])
+  end
+
+  test "date as tuple", %{pid: pid} do
+    assert {_query, %Result{rows: [["2017-01-01"]]}} =
+      act(pid, "date", [{2017, 1, 1}])
+  end
+
+  test "time as tuple", %{pid: pid} do
+    do_time = fn pid, type, params ->
+      Mssqlex.query!(pid, "CREATE TABLE types_test.dbo.\"#{Base.url_encode64 type}\" (test #{type})", [])
+      Mssqlex.query!(pid, "INSERT INTO types_test.dbo.\"#{Base.url_encode64 type}\" VALUES (?)", params)
+      Mssqlex.query!(pid, "SELECT CONVERT(nvarchar(15), test, 21) FROM types_test.dbo.\"#{Base.url_encode64 type}\"", [])
+    end
+    assert {_query, %Result{rows: [["12:10:00.000054"]]}} =
+      do_time.(pid, "time(6)", [{12, 10, 0, 54}])
   end
 
   test "sql_bit", %{pid: pid} do
-    assert {_query, %Result{rows: [[false], [true]]}} =
-      act(pid, "bit", [{:sql_bit, [false, true]}])
+    assert {_query, %Result{rows: [[true]]}} =
+      act(pid, "bit", [true])
   end
 
   defp act(pid, type, params) do
