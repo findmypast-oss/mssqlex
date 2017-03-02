@@ -17,9 +17,8 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "sql_wchar", %{pid: pid} do
-    assert {_query, %Result{rows: [[value]]}} =
+    assert {_query, %Result{rows: [["e→øæ"]]}} =
       act(pid, "nchar(4)", [{{:sql_wchar, 4}, ["e→øæ"]}])
-    assert "e→øæ" = :unicode.characters_to_binary(value, {:utf16, :little})
   end
 
   test "sql_varchar", %{pid: pid} do
@@ -28,9 +27,8 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "sql_wvarchar", %{pid: pid} do
-    assert {_query, %Result{rows: [[value]]}} =
+    assert {_query, %Result{rows: [["e→øæ"]]}} =
       act(pid, "nvarchar(4)", [{{:sql_wvarchar, 4}, ["e→øæ"]}])
-    assert "e→øæ" = :unicode.characters_to_binary(value, {:utf16, :little})
   end
 
   test "sql_numeric(9, 0)", %{pid: pid} do
