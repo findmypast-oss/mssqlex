@@ -22,6 +22,13 @@ defmodule Mssqlex.TypesTest do
       act(pid, "nchar(4)", ["e→øæ"])
   end
 
+  test "nchar with preserved encoding", %{pid: pid} do
+    expected = :unicode.characters_to_binary("e→ø",
+      :unicode, {:utf16, :little})
+    assert {_query, %Result{rows: [[ ^expected ]]}} =
+      act(pid, "nchar(3)", ["e→ø"], [preserve_encoding: true])
+  end
+
   test "varchar", %{pid: pid} do
     assert {_query, %Result{rows: [["Nathan"]]}} =
       act(pid, "varchar(6)", ["Nathan"])
@@ -30,6 +37,13 @@ defmodule Mssqlex.TypesTest do
   test "nvarchar", %{pid: pid} do
     assert {_query, %Result{rows: [["e→øæ"]]}} =
       act(pid, "nvarchar(4)", ["e→øæ"])
+  end
+
+  test "nvarchar with preserved encoding", %{pid: pid} do
+    expected = :unicode.characters_to_binary("e→ø",
+      :unicode, {:utf16, :little})
+    assert {_query, %Result{rows: [[ ^expected ]]}} =
+      act(pid, "nvarchar(3)", ["e→ø"], [preserve_encoding: true])
   end
 
   test "numeric(9, 0) as integer", %{pid: pid} do
@@ -42,36 +56,70 @@ defmodule Mssqlex.TypesTest do
       act(pid, "numeric(8)", [Decimal.new(12345678)])
   end
 
-  test "sql_numeric(15, 0) as decimal", %{pid: pid} do
+  test "numeric(15, 0) as decimal", %{pid: pid} do
     number = Decimal.new("123456789012345")
     assert {_query, %Result{rows: [[%Decimal{} = value]]}} =
       act(pid, "numeric(15)", [number])
     assert Decimal.equal?(number, value)
   end
 
-  test "sql_numeric(38, 0) as decimal", %{pid: pid} do
-    number = Decimal.new("12345678901234567890123456789012345678")
-    assert {_query, %Result{rows: [["12345678901234567890123456789012345678"]]}} =
-      act(pid, "numeric(38)", [number])
+  test "numeric(38, 0) as decimal", %{pid: pid} do
+    number = "12345678901234567890123456789012345678"
+    assert {_query, %Result{rows: [[^number]]}} =
+      act(pid, "numeric(38)", [Decimal.new(number)])
   end
 
-  test "sql_numeric(36, 0) as string", %{pid: pid} do
+  test "numeric(36, 0) as string", %{pid: pid} do
     number = "123456789012345678901234567890123456"
-    assert {_query, %Result{rows: [["123456789012345678901234567890123456"]]}} =
+    assert {_query, %Result{rows: [[^number]]}} =
       act(pid, "numeric(36)", [number])
   end
 
-  test "sql_numeric(5, 2) as decimal", %{pid: pid} do
+  test "numeric(5, 2) as decimal", %{pid: pid} do
     number = Decimal.new("123.45")
     assert {_query, %Result{rows: [[value]]}} =
       act(pid, "numeric(5,2)", [number])
     assert Decimal.equal?(number, value)
   end
 
-  test "sql_numeric(6, 3) as float", %{pid: pid} do
+  test "numeric(6, 3) as float", %{pid: pid} do
     number = Decimal.new("123.456")
     assert {_query, %Result{rows: [[value]]}} =
       act(pid, "numeric(6,3)", [123.456])
+    assert Decimal.equal?(number, value)
+  end
+
+  test "real as decimal", %{pid: pid} do
+    number = Decimal.new("123.45")
+    assert {_query, %Result{rows: [[%Decimal{} = value]]}} =
+      act(pid, "real", [number])
+    assert Decimal.equal?(number, Decimal.round(value, 2))
+  end
+
+  test "float as decimal", %{pid: pid} do
+    number = Decimal.new("123.45")
+    assert {_query, %Result{rows: [[%Decimal{} = value]]}} =
+      act(pid, "float", [number])
+    assert Decimal.equal?(number, Decimal.round(value, 2))
+  end
+
+  test "double as decimal", %{pid: pid} do
+    number = Decimal.new("1.12345678901234")
+    assert {_query, %Result{rows: [[%Decimal{} = value]]}} =
+      act(pid, "double precision", [number])
+    assert Decimal.equal?(number, value)
+  end
+
+  test "money as decimal", %{pid: pid} do
+    number = Decimal.new("1000000.45")
+    assert {_query, %Result{rows: [["1000000.4500"]]}} =
+      act(pid, "money", [number])
+  end
+
+  test "smallmoney as decimal", %{pid: pid} do
+    number = Decimal.new("123.45")
+    assert {_query, %Result{rows: [[value]]}} =
+      act(pid, "smallmoney", [number])
     assert Decimal.equal?(number, value)
   end
 
@@ -97,17 +145,17 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "smalldatetime as tuple", %{pid: pid} do
-    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
+    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]}} =
       act(pid, "smalldatetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "datetime as tuple", %{pid: pid} do
-    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
+    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]}} =
       act(pid, "datetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "datetime2 as tuple", %{pid: pid} do
-    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
+    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]}} =
       act(pid, "datetime2", [{{2017, 1, 1}, {12, 10, 0, 54}}])
   end
 
@@ -117,23 +165,101 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "time as tuple", %{pid: pid} do
-    do_time = fn pid, type, params ->
-      Mssqlex.query!(pid, "CREATE TABLE types_test.dbo.\"#{Base.url_encode64 type}\" (test #{type})", [])
-      Mssqlex.query!(pid, "INSERT INTO types_test.dbo.\"#{Base.url_encode64 type}\" VALUES (?)", params)
-      Mssqlex.query!(pid, "SELECT CONVERT(nvarchar(15), test, 21) FROM types_test.dbo.\"#{Base.url_encode64 type}\"", [])
+    do_act = fn pid, type, params ->
+      Mssqlex.query!(pid,
+        "CREATE TABLE #{table_name(type)} (test #{type})", [])
+      Mssqlex.query!(pid,
+        "INSERT INTO #{table_name(type)} VALUES (?)", params)
+      Mssqlex.query!(pid,
+        "SELECT CONVERT(nvarchar(15), test, 21) FROM #{table_name(type)}", [])
     end
     assert {_query, %Result{rows: [["12:10:00.000054"]]}} =
-      do_time.(pid, "time(6)", [{12, 10, 0, 54}])
+      do_act.(pid, "time(6)", [{12, 10, 0, 54}])
   end
 
-  test "sql_bit", %{pid: pid} do
+  test "bit", %{pid: pid} do
     assert {_query, %Result{rows: [[true]]}} =
       act(pid, "bit", [true])
   end
 
-  defp act(pid, type, params) do
-    Mssqlex.query!(pid, "CREATE TABLE types_test.dbo.\"#{Base.url_encode64 type}\" (test #{type})", [])
-    Mssqlex.query!(pid, "INSERT INTO types_test.dbo.\"#{Base.url_encode64 type}\" VALUES (?)", params)
-    Mssqlex.query!(pid, "SELECT * FROM types_test.dbo.\"#{Base.url_encode64 type}\"", [])
+  test "uniqueidentifier", %{pid: pid} do
+    do_act = fn pid, type, params ->
+      Mssqlex.query!(pid,
+        "CREATE TABLE #{table_name(type)} (test #{type})", [])
+      Mssqlex.query!(pid,
+        "INSERT INTO #{table_name(type)} VALUES (?)", params)
+      Mssqlex.query!(pid,
+        "SELECT CONVERT(char(36), test) FROM #{table_name(type)}", [])
+    end
+
+    assert {_query, %Result{rows: [["6F9619FF-8B86-D011-B42D-00C04FC964FF"]]}} =
+      do_act.(pid, "uniqueidentifier", ["6F9619FF-8B86-D011-B42D-00C04FC964FF"])
+  end
+
+  test "rowversion", %{pid: pid} do
+    type = "rowversion"
+
+    Mssqlex.query!(pid,
+      "CREATE TABLE #{table_name(type)} (test #{type}, num int)", [])
+    Mssqlex.query!(pid,
+      "INSERT INTO #{table_name(type)} (num) VALUES (?)", [1])
+    Mssqlex.query!(pid,
+      "INSERT INTO #{table_name(type)} (num) VALUES (?)", [2])
+
+    assert {_query, %Result{rows: [[2001], [2002]]}} =
+      Mssqlex.query!(pid,
+        "SELECT CONVERT(int, test) FROM #{table_name(type)}", [])
+  end
+
+  test "binary", %{pid: pid} do
+    do_act = fn pid, type, params ->
+      Mssqlex.query!(pid,
+        "CREATE TABLE #{table_name(type)} (test #{type})", [])
+      Mssqlex.query!(pid,
+        "INSERT INTO #{table_name(type)} VALUES (?)", params)
+      Mssqlex.query!(pid,
+        "SELECT CONVERT(int, test) FROM #{table_name(type)}", [])
+    end
+
+    assert {_query, %Result{rows: [[255]]}} =
+      do_act.(pid, "binary", [255])
+  end
+
+  test "varbinary", %{pid: pid} do
+    do_act = fn pid, type, params ->
+      Mssqlex.query!(pid,
+        "CREATE TABLE #{table_name(type)} (test #{type})", [])
+      Mssqlex.query!(pid,
+        "INSERT INTO #{table_name(type)} VALUES (?)", params)
+      Mssqlex.query!(pid,
+        "SELECT CONVERT(int, test) FROM #{table_name(type)}", [])
+    end
+
+    assert {_query, %Result{rows: [[255]]}} =
+      do_act.(pid, "varbinary", [255])
+  end
+
+  test "invalid input type", %{pid: pid} do
+    assert_raise Mssqlex.Error, ~r/unrecognised type/, fn ->
+      act(pid, "char(10)", [{"Nathan"}])
+    end
+  end
+
+  test "invalid input binary", %{pid: pid} do
+    assert_raise Mssqlex.Error, ~r/failed to convert/, fn ->
+      act(pid, "char(12)", [<<110, 0, 200>>])
+    end
+  end
+
+  defp table_name(type) do
+    ~s(types_test.dbo."#{Base.url_encode64 type}")
+  end
+  defp act(pid, type, params, opts \\ []) do
+    Mssqlex.query!(pid,
+      "CREATE TABLE #{table_name(type)} (test #{type})", [], opts)
+    Mssqlex.query!(pid,
+      "INSERT INTO #{table_name(type)} VALUES (?)", params, opts)
+    Mssqlex.query!(pid,
+      "SELECT * FROM #{table_name(type)}", [], opts)
   end
 end

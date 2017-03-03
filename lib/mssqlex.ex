@@ -2,19 +2,24 @@ defmodule Mssqlex do
   @moduledoc """
   Interface for interacting with MS SQL Server via an ODBC driver for Elixir.
 
-  It implements `DBConnection` behaviour, using `:odbc` to connect to the system's
-  ODBC driver. Requires MS SQL Server ODBC driver, see [README](readme.html) for installation
-  instructions.
+  It implements `DBConnection` behaviour, using `:odbc` to connect to the
+  system's ODBC driver. Requires MS SQL Server ODBC driver, see
+  [README](readme.html) for installation instructions.
   """
+
+  alias Mssqlex.Query
+  alias Mssqlex.Type
 
   @doc """
   Connect to a MS SQL Server using ODBC.
 
   ## Options
 
-    * `:odbc_driver` - The driver ODBC will use (default: {ODBC Driver 13 for SQL Server})
+    * `:odbc_driver` - The driver the adapter will use
+      (default: {ODBC Driver 13 for SQL Server})
     * `:hostname` - The server hostname (default: localhost)
-    * `:database` - The name of the database (default: MSSQL_DB environment variable)
+    * `:database` - The name of the database
+      (default: MSSQL_DB environment variable)
     * `:username` - Username (default: MSSQL_UID environment variable)
     * `:password` - User password (default: MSSQL_PWD environment variable)
 
@@ -27,9 +32,6 @@ defmodule Mssqlex do
       iex> {:ok, pid} = Mssqlex.start_link(database: "mr_microsoft")
       {:ok, #PID<0.70.0>}
   """
-
-  alias Mssqlex.Query
-
   @spec start_link(Keyword.t) :: {:ok, pid}
   def start_link(opts) do
 
@@ -46,18 +48,65 @@ defmodule Mssqlex do
   @doc """
   Executes a query against an MS SQL Server with ODBC.
 
-  Statement and params should be in the format required by the Erlang ODBC application.
+  Params are expected in one of the following formats:
 
-  For examples see [Using the Erlang API guide](http://www1.erlang.org/doc/apps/odbc/getting_started.html#param_query).
+    * Strings with only valid ASCII characters, which will be sent to the
+      database as strings.
+    * Other binaries, which will be converted to UTF16 Little Endian binaries
+      (which is what SQL Server expects for its unicode fields).
+    * `Decimal` structs, which will be encoded as strings so they can be
+      sent to the database with arbitrary precision.
+    * Integers, which will be sent as-is if under 10 digits or encoded
+      as strings for larger numbers.
+    * Floats, which will be encoded as strings.
+    * Time as `{hour, minute, sec, usec}` tuples, which will be encoded as
+      strings.
+    * Dates as `{year, month, day}` tuples, which will be encoded as strings.
+    * Datetime as `{{hour, minute, sec, usec}, {year, month, day}}` tuples which
+      will be encoded as strings. Note that attempting to insert a value with
+      usec > 0 into a 'datetime' or 'smalldatetime' column is an error since
+      those column types don't have enough precision to store usec data.
+
+  Result values will be encoded according to the following conversions:
+
+    * char and varchar: strings.
+    * nchar and nvarchar: strings unless `:preserve_encoding` is set to `true`
+      in which case they will be returned as UTF16 Little Endian binaries.
+    * int, smallint, tinyint, decimal and numeric when precision < 10 and
+      scale = 0 (i.e. effectively integers): integers.
+    * float, real, double precision, decimal and numeric when precision between
+      10 and 15 and/or scale between 1 and 15: `Decimal` structs.
+    * bigint, money, decimal and numeric when precision > 15: strings.
+    * date: `{year, month, day}`
+    * smalldatetime, datetime, dateime2:
+      `{{year, month, day}, {hour, minute, sec, 0}}` (fractional second data is
+      lost due to limitations of the ODBC adapter. To preserve it you can
+      convert these columns to varchar during selection.)
+    * uniqueidentifier, time, binary, varbinary, rowversion: not currently
+      supported due to adapter limitations. Select statements for columns
+      of these types must convert them to supported types (e.g. varchar).
+
+  ## Options
+
+    * `:preserve_encoding`: If `true`, doesn't convert returned binaries from
+      UTF16LE to UTF8. Default: `false`.
   """
-  @spec query(pid(), Query.t(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
+  @spec query(pid(), Query.t(), [Type.param()], Keyword.t) ::
     {:ok, iodata(), Mssqlex.Result.t}
   def query(conn, statement, params, opts \\ []) do
-    DBConnection.prepare_execute(conn, %Query{name: "", statement: statement}, params, opts)
+    DBConnection.prepare_execute(
+      conn, %Query{name: "", statement: statement}, params, opts)
   end
-  @spec query(pid(), Query.t(), [{:odbc.odbc_data_type(), [any()]}], Keyword.t) ::
+
+  @doc """
+  Executes a query against an MS SQL Server with ODBC.
+
+  Raises an error on failure. See `query/4` for details.
+  """
+  @spec query!(pid(), Query.t(), [Type.param()], Keyword.t) ::
     {iodata(), Mssqlex.Result.t}
   def query!(conn, statement, params, opts \\ []) do
-    DBConnection.prepare_execute!(conn, %Query{name: "", statement: statement}, params, opts)
+    DBConnection.prepare_execute!(
+      conn, %Query{name: "", statement: statement}, params, opts)
   end
 end

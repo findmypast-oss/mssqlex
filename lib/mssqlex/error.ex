@@ -2,8 +2,9 @@ defmodule Mssqlex.Error do
   @moduledoc """
   Defines an error returned from the ODBC adapter.
   * `message` is the full message returned by ODBC
-  * `odbc_code` is an atom representing the returned [SQLSTATE](https://docs.microsoft.com/en-us/sql/odbc/reference/appendixes/appendix-a-odbc-error-codes)
-  or the string representation of the code if it cannot be translated.
+  * `odbc_code` is an atom representing the returned
+    [SQLSTATE](https://docs.microsoft.com/en-us/sql/odbc/reference/appendixes/appendix-a-odbc-error-codes)
+    or the string representation of the code if it cannot be translated.
   """
 
   defexception [:message, :odbc_code]

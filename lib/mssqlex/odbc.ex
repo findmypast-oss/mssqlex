@@ -25,18 +25,23 @@ defmodule Mssqlex.ODBC do
   """
   @spec start_link(binary(), Keyword.t) :: {:ok, pid()}
   def start_link(conn_str, opts) do
-    GenServer.start_link(__MODULE__, [{:conn_str, to_charlist(conn_str)} | opts])
+    GenServer.start_link(__MODULE__,
+      [{:conn_str, to_charlist(conn_str)} | opts])
   end
 
   @doc """
   Sends a parametrized query to the ODBC driver.
 
-  Interface to `:odbc.param_query/3`. See [Erlang's ODBC guide](http://erlang.org/doc/apps/odbc/getting_started.html)
+  Interface to `:odbc.param_query/3`.See
+  [Erlang's ODBC guide](http://erlang.org/doc/apps/odbc/getting_started.html)
   for usage details and examples.
   """
-  @spec query(pid(), iodata(), Keyword.t) :: {:selected, [binary()], [tuple()] | {:updated, non_neg_integer()}} | {:error, Exception.t}
+  @spec query(pid(), iodata(), Keyword.t) :: {:selected, [binary()], [tuple()]
+                                           | {:updated, non_neg_integer()}}
+                                           | {:error, Exception.t}
   def query(pid, statement, params) do
-    GenServer.call(pid, {:query, %{statement: IO.iodata_to_binary(statement), params: params}})
+    GenServer.call(pid,
+      {:query, %{statement: IO.iodata_to_binary(statement), params: params}})
   end
 
   @doc """
@@ -89,8 +94,11 @@ defmodule Mssqlex.ODBC do
   end
 
   @doc false
-  def handle_call({:query, %{statement: statement, params: params}}, _from, state) do
-    {:reply, handle_errors(:odbc.param_query(state, to_charlist(statement), params)), state}
+  def handle_call({:query, %{statement: statement, params: params}},
+    _from, state) do
+    {:reply,
+     handle_errors(:odbc.param_query(state, to_charlist(statement), params)),
+     state}
   end
 
   @doc false
