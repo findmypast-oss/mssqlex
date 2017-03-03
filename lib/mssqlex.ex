@@ -13,7 +13,7 @@ defmodule Mssqlex do
   @doc """
   Connect to a MS SQL Server using ODBC.
 
-  ## Options
+  `opts` expects a keyword list with zero or more of:
 
     * `:odbc_driver` - The driver the adapter will use
       (default: {ODBC Driver 13 for SQL Server})
@@ -47,7 +47,11 @@ defmodule Mssqlex do
   @doc """
   Executes a query against an MS SQL Server with ODBC.
 
-  Params are expected in one of the following formats:
+  `conn` expects a `Mssqlex` process identifier.
+
+  `statement` expects a SQL query string.
+
+  `params` expects a list of values in one of the following formats:
 
     * Strings with only valid ASCII characters, which will be sent to the
       database as strings.
@@ -65,6 +69,11 @@ defmodule Mssqlex do
       will be encoded as strings. Note that attempting to insert a value with
       usec > 0 into a 'datetime' or 'smalldatetime' column is an error since
       those column types don't have enough precision to store usec data.
+
+  `opts` expects a keyword list with zero or more of:
+
+    * `:preserve_encoding`: If `true`, doesn't convert returned binaries from
+    UTF16LE to UTF8. Default: `false`.
 
   Result values will be encoded according to the following conversions:
 
@@ -84,13 +93,8 @@ defmodule Mssqlex do
     * uniqueidentifier, time, binary, varbinary, rowversion: not currently
       supported due to adapter limitations. Select statements for columns
       of these types must convert them to supported types (e.g. varchar).
-
-  ## Options
-
-    * `:preserve_encoding`: If `true`, doesn't convert returned binaries from
-      UTF16LE to UTF8. Default: `false`.
   """
-  @spec query(pid(), Query.t(), [Type.param()], Keyword.t) ::
+  @spec query(pid(), binary(), [Type.param()], Keyword.t) ::
     {:ok, iodata(), Mssqlex.Result.t}
   def query(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute(
@@ -102,7 +106,7 @@ defmodule Mssqlex do
 
   Raises an error on failure. See `query/4` for details.
   """
-  @spec query!(pid(), Query.t(), [Type.param()], Keyword.t) ::
+  @spec query!(pid(), binary(), [Type.param()], Keyword.t) ::
     {iodata(), Mssqlex.Result.t}
   def query!(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute!(

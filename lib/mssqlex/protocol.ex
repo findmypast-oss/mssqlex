@@ -36,6 +36,7 @@ defmodule Mssqlex.Protocol do
   @type result :: Result.t
   @type cursor :: any
 
+  @doc false
   @spec connect(opts :: Keyword.t) :: {:ok, state}
                                     | {:error, Exception.t}
   def connect(opts) do
@@ -61,6 +62,7 @@ defmodule Mssqlex.Protocol do
     end
   end
 
+  @doc false
   @spec disconnect(err :: Exception.t, state) :: :ok
   def disconnect(_err, state = %{pid: pid}) do
     case ODBC.disconnect(pid) do
@@ -69,24 +71,28 @@ defmodule Mssqlex.Protocol do
     end
   end
 
+  @doc false
   @spec reconnect(new_opts :: Keyword.t, state) :: {:ok, state}
   def reconnect(new_opts, state) do
     with :ok <- disconnect("Reconnecting", state),
       do: connect(new_opts)
   end
 
+  @doc false
   @spec checkout(state) :: {:ok, state}
                          | {:disconnect, Exception.t, state}
   def checkout(state) do
     {:ok, state}
   end
 
+  @doc false
   @spec checkin(state) :: {:ok, state}
                         | {:disconnect, Exception.t, state}
   def checkin(state) do
     {:ok, state}
   end
 
+  @doc false
   @spec handle_begin(opts :: Keyword.t, state) ::
     {:ok, result, state}
   | {:error | :disconnect, Exception.t, state}
@@ -94,6 +100,7 @@ defmodule Mssqlex.Protocol do
     {:ok, %Result{num_rows: 0}, Map.put(state, :mssql, :transaction)}
   end
 
+  @doc false
   @spec handle_commit(opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
@@ -104,6 +111,7 @@ defmodule Mssqlex.Protocol do
     end
   end
 
+  @doc false
   @spec handle_rollback(opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
@@ -114,6 +122,7 @@ defmodule Mssqlex.Protocol do
     end
   end
 
+  @doc false
   @spec handle_prepare(query, opts :: Keyword.t, state) ::
     {:ok, query, state} |
     {:error | :disconnect, Exception.t, state}
@@ -121,6 +130,7 @@ defmodule Mssqlex.Protocol do
     {:ok, query, state}
   end
 
+  @doc false
   @spec handle_execute(query, params, opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
@@ -165,6 +175,7 @@ defmodule Mssqlex.Protocol do
     reconnect(Keyword.put(state.conn_opts, :auto_commit, new_value), state)
   end
 
+  @doc false
   @spec handle_close(query, opts :: Keyword.t, state) ::
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}

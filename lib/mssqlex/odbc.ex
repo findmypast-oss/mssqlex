@@ -35,6 +35,10 @@ defmodule Mssqlex.ODBC do
   Interface to `:odbc.param_query/3`.See
   [Erlang's ODBC guide](http://erlang.org/doc/apps/odbc/getting_started.html)
   for usage details and examples.
+
+  `pid` is the `:odbc` process id
+  `statement` is the SQL query string
+  `opts` are options to be passed on to `:odbc`
   """
   @spec query(pid(), iodata(), Keyword.t) :: {:selected, [binary()], [tuple()]
                                            | {:updated, non_neg_integer()}}
@@ -49,6 +53,8 @@ defmodule Mssqlex.ODBC do
 
   Note that unless in autocommit mode, all queries are wrapped in
   implicit transactions and must be committed.
+
+  `pid` is the `:odbc` process id
   """
   @spec commit(pid()) :: :ok | {:error, Exception.t}
   def commit(pid) do
@@ -57,6 +63,8 @@ defmodule Mssqlex.ODBC do
 
   @doc """
   Rolls back a transaction on the ODBC driver.
+
+  `pid` is the `:odbc` process id
   """
   @spec rollback(pid()) :: :ok | {:error, Exception.t}
   def rollback(pid) do
@@ -69,6 +77,8 @@ defmodule Mssqlex.ODBC do
   Attempts to roll back any pending transactions. If a pending
   transaction cannot be rolled back the disconnect still
   happens without any changes being committed.
+
+  `pid` is the `:odbc` process id
   """
   @spec disconnect(pid()) :: :ok
   def disconnect(pid) do
