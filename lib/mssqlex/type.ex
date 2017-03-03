@@ -32,13 +32,17 @@ defmodule Mssqlex.Type do
   """
   @spec encode(value :: param(), opts :: Keyword.t) ::
     {:odbc.odbc_data_type(), [:odbc.value()]}
-  def encode(value, _) when is_boolean(value), do: {:sql_bit, [value]}
+  def encode(value, _) when is_boolean(value) do
+    {:sql_bit, [value]}
+    end
+
   def encode({_year, _month, _day} = date, _) do
     encoded = Date.from_erl!(date)
     |> to_string
     |> to_charlist
     {{:sql_varchar, length(encoded)}, [encoded]}
   end
+
   def encode({hour, minute, sec, usec}, _) do
     precision = if usec == 0, do: 0, else: 6
     encoded = Time.from_erl!({hour, minute, sec}, {usec, precision})
@@ -46,6 +50,7 @@ defmodule Mssqlex.Type do
     |> to_charlist
     {{:sql_varchar, length(encoded)}, [encoded]}
   end
+
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
     precision = if usec == 0, do: 0, else: 6
     encoded = NaiveDateTime.from_erl!(
@@ -54,17 +59,21 @@ defmodule Mssqlex.Type do
     |> to_charlist
     {{:sql_varchar, length(encoded)}, [encoded]}
   end
+
   def encode(value, _) when is_integer(value) do
     {:sql_integer, [value]}
   end
+
   def encode(value, _) when is_float(value) do
     encoded = value |> to_string |> to_charlist
     {{:sql_varchar, length(encoded)}, [encoded]}
   end
+
   def encode(%Decimal{} = value, _) do
     encoded = value |> to_string |> to_charlist
     {{:sql_varchar, length(encoded)}, [encoded]}
   end
+
   def encode(value, _) when is_binary(value) do
     case :unicode.characters_to_binary(value, :unicode, :latin1) do
       {_, _, _} ->
@@ -81,8 +90,11 @@ defmodule Mssqlex.Type do
         {{:sql_varchar, length(latin1)}, [latin1]}
     end
   end
-  def encode(value, _), do: raise %Mssqlex.Error{
-        message: "could not parse param #{inspect value} of unrecognised type."}
+
+  def encode(value, _) do
+    raise %Mssqlex.Error{
+      message: "could not parse param #{inspect value} of unrecognised type."}
+  end
 
   @doc """
   Transforms `:odbc` return values to Elixir representations.
@@ -91,7 +103,11 @@ defmodule Mssqlex.Type do
   def decode({{_year, _month, _day} = date, {hour, minute, sec}}, _) do
     {date, {hour, minute, sec, 0}}
   end
-  def decode(value, _) when is_float(value), do: Decimal.new(value)
+
+  def decode(value, _) when is_float(value) do
+    Decimal.new(value)
+  end
+
   def decode(value, opts) when is_binary(value) do
     if opts[:preserve_encoding] do
       value
@@ -99,6 +115,12 @@ defmodule Mssqlex.Type do
       :unicode.characters_to_binary(value, {:utf16, :little})
     end
   end
-  def decode(value, _) when is_list(value), do: to_string(value)
-  def decode(value, _), do: value
+
+  def decode(value, _) when is_list(value) do
+    to_string(value)
+  end
+
+  def decode(value, _) do
+    value
+  end
 end

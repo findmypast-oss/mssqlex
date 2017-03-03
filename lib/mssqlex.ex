@@ -34,7 +34,6 @@ defmodule Mssqlex do
   """
   @spec start_link(Keyword.t) :: {:ok, pid}
   def start_link(opts) do
-
     opts = opts
     |> Keyword.put_new(:odbc_driver, "{ODBC Driver 13 for SQL Server}")
     |> Keyword.put_new(:hostname, System.get_env("MSSQL_HST") || "localhost")
