@@ -33,7 +33,7 @@ defmodule Mssqlex.QueryTest do
 
     assert {:ok, _, %Result{
                num_rows: 1,
-               rows: [[1, "Jae", {{2017, 1, 1}, {12, 1, 1, 0}}]]}} =
+               rows: [[1, "Jae", _]]}} =
       Mssqlex.query(pid, "SELECT * FROM query_test.dbo.parametrized_query;", [])
   end
 end

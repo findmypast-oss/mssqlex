@@ -100,8 +100,8 @@ defmodule Mssqlex.Type do
   Transforms `:odbc` return values to Elixir representations.
   """
   @spec decode(:odbc.value(), opts :: Keyword.t) :: return_value()
-  def decode({{_year, _month, _day} = date, {hour, minute, sec}}, _) do
-    {date, {hour, minute, sec, 0}}
+  def decode({{_year, _month, _day}, {_hour, _minute, _sec}} = datetime, _) do
+    NaiveDateTime.from_erl!(datetime)
   end
 
   def decode(value, _) when is_float(value) do

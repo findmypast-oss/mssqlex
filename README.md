@@ -23,7 +23,7 @@ by adding `mssqlex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:mssqlex, "~> 0.2"}]
+  [{:mssqlex, "~> 0.3"}]
 end
 ```
 

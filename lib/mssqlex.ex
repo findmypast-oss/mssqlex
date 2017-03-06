@@ -88,10 +88,9 @@ defmodule Mssqlex do
       10 and 15 and/or scale between 1 and 15: `Decimal` structs.
     * bigint, money, decimal and numeric when precision > 15: strings.
     * date: `{year, month, day}`
-    * smalldatetime, datetime, dateime2:
-      `{{year, month, day}, {hour, minute, sec, 0}}` (fractional second data is
-      lost due to limitations of the ODBC adapter. To preserve it you can
-      convert these columns to varchar during selection.)
+    * smalldatetime, datetime, dateime2: `NaiveDateTime` (note that fractional
+      second data is lost due to limitations of the ODBC adapter. To preserve it
+      you can convert these columns to varchar during selection.)
     * uniqueidentifier, time, binary, varbinary, rowversion: not currently
       supported due to adapter limitations. Select statements for columns
       of these types must convert them to supported types (e.g. varchar).
