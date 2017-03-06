@@ -99,4 +99,39 @@ defmodule Mssqlex.TransactionTest do
     assert {:error, %Mssqlex.Error{odbc_code: :base_table_or_view_not_found}} =
       Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
+
+  @tag :only
+  test "Commit savepoint", %{pid: pid} do
+    table_name = "transaction_test.dbo.commit_savepoint"
+    assert {:ok, %Result{}} = DBConnection.transaction(pid, fn pid ->
+      Mssqlex.query!(pid,
+      "CREATE TABLE #{table_name} (name varchar(50));", [])
+      {:ok, _, result} = Mssqlex.query(pid,
+        "INSERT INTO #{table_name} VALUES ('Steven');", [])
+      result
+    end, [mode: :savepoint])
+    assert {:ok, _query, %Result{rows: [["Steven"]]}} =
+      Mssqlex.query(pid, "SELECT * from #{table_name};", [])
+  end
+
+  test "failing savepoint", %{pid: pid} do
+    table_name = "transaction_test.dbo.failing_savepoint"
+    assert_raise Mssqlex.Error, fn ->
+      DBConnection.transaction(pid, fn pid ->
+        Mssqlex.query!(pid,
+          "CREATE TABLE #{table_name} (name varchar(3));", [])
+        DBConnection.transaction(pid, fn pid ->
+          Mssqlex.query!(pid,
+            "INSERT INTO #{table_name} VALUES ('Jae');", [])
+        end, [mode: :savepoint])
+        DBConnection.transaction(pid, fn pid ->
+          Mssqlex.query!(pid,
+            "INSERT INTO #{table_name} VALUES ('Steven');", [])
+        end, [mode: :savepoint])
+      end, [mode: :savepoint])
+    end
+
+    assert {:ok, _, %Result{rows: [["Jae"]]}} =
+      Mssqlex.query(pid, "SELECT * from #{table_name};", [])
+  end
 end

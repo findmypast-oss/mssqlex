@@ -74,6 +74,8 @@ defmodule Mssqlex do
 
     * `:preserve_encoding`: If `true`, doesn't convert returned binaries from
     UTF16LE to UTF8. Default: `false`.
+    * `:mode` - set to `:savepoint` to use a savepoint to rollback to before the
+    query on error, otherwise set to `:transaction` (default: `:transaction`);
 
   Result values will be encoded according to the following conversions:
 
