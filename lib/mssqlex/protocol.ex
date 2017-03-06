@@ -97,7 +97,15 @@ defmodule Mssqlex.Protocol do
     {:ok, result, state}
   | {:error | :disconnect, Exception.t, state}
   def handle_begin(_opts, state) do
-    {:ok, %Result{num_rows: 0}, Map.put(state, :mssql, :transaction)}
+    case state.mssql do
+      :idle -> {:ok, %Result{num_rows: 0}, %{state | mssql: :transaction}}
+      :transaction -> {:error,
+        %Mssqlex.Error{message: "Already in transaction"},
+        state}
+      :auto_commit -> {:error,
+        %Mssqlex.Error{message: "Transactions not allowed in autocommit mode"},
+        state}
+    end
   end
 
   @doc false
@@ -106,7 +114,7 @@ defmodule Mssqlex.Protocol do
     {:error | :disconnect, Exception.t, state}
   def handle_commit(_opts, state = %{pid: pid}) do
     case ODBC.commit(pid) do
-      :ok -> {:ok, %Result{}, state}
+      :ok -> {:ok, %Result{}, %{state | mssql: :idle}}
       {:error, reason} -> {:error, reason, state}
     end
   end
@@ -117,8 +125,8 @@ defmodule Mssqlex.Protocol do
     {:error | :disconnect, Exception.t, state}
   def handle_rollback(_opts, state = %{pid: pid}) do
     case ODBC.rollback(pid) do
-      :ok -> {:ok, %Result{}, state}
-      {:error, reason} -> {:error, reason. state}
+      :ok -> {:ok, %Result{}, %{state | mssql: :idle}}
+      {:error, reason} -> {:disconnect, reason, state}
     end
   end
 
