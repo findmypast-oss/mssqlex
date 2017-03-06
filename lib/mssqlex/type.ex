@@ -101,7 +101,7 @@ defmodule Mssqlex.Type do
   """
   @spec decode(:odbc.value(), opts :: Keyword.t) :: return_value()
   def decode({{_year, _month, _day}, {_hour, _minute, _sec}} = datetime, _) do
-    NaiveDateTime.from_erl!(datetime)
+    NaiveDateTime.from_erl!(datetime, {0, 6})
   end
 
   def decode(value, _) when is_float(value) do
