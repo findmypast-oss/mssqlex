@@ -60,8 +60,15 @@ defmodule Mssqlex.Type do
     {{:sql_varchar, length(encoded)}, [encoded]}
   end
 
-  def encode(value, _) when is_integer(value) do
+  def encode(value, _) when is_integer(value)
+  and (value > -1_000_000_000)
+  and (value < 1_000_000_000) do
     {:sql_integer, [value]}
+  end
+
+  def encode(value, _) when is_integer(value) do
+    encoded = value |> to_string |> to_charlist
+    {{:sql_varchar, length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_float(value) do

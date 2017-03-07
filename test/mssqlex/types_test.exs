@@ -124,9 +124,8 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "bigint", %{pid: pid} do
-    number = Decimal.new "-9223372036854775808"
     assert {_query, %Result{rows: [["-9223372036854775808"]]}} =
-      act(pid, "bigint", [number])
+      act(pid, "bigint", [-9223372036854775808])
   end
 
   test "int", %{pid: pid} do
