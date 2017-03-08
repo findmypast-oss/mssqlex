@@ -238,6 +238,19 @@ defmodule Mssqlex.TypesTest do
       do_act.(pid, "varbinary", [255])
   end
 
+  test "null", %{pid: pid} do
+    type = "char(13)"
+
+    Mssqlex.query!(pid,
+      "CREATE TABLE #{table_name(type)} (test #{type}, num int)", [])
+    Mssqlex.query!(pid,
+      "INSERT INTO #{table_name(type)} (num) VALUES (?)", [2])
+
+    assert {_query, %Result{rows: [[nil]]}} =
+      Mssqlex.query!(pid,
+        "SELECT CONVERT(int, test) FROM #{table_name(type)}", [])
+  end
+
   test "invalid input type", %{pid: pid} do
     assert_raise Mssqlex.Error, ~r/unrecognised type/, fn ->
       act(pid, "char(10)", [{"Nathan"}])

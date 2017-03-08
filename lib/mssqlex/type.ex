@@ -18,7 +18,7 @@ defmodule Mssqlex.Type do
     | datetime()
     | Decimal.t()
 
-  @typedoc "Date as `{year, month, day}`" 
+  @typedoc "Date as `{year, month, day}`"
   @type date :: {1..9_999, 1..12, 1..31}
 
   @typedoc "Time as `{hour, minute, sec, usec}`"
@@ -125,6 +125,10 @@ defmodule Mssqlex.Type do
 
   def decode(value, _) when is_list(value) do
     to_string(value)
+  end
+
+  def decode(:null, _) do
+    nil
   end
 
   def decode(value, _) do
