@@ -144,17 +144,17 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "smalldatetime as tuple", %{pid: pid} do
-    assert {_query, %Result{rows: [[~N[2017-01-01 12:10:00.000000]]]}} =
+    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
       act(pid, "smalldatetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "datetime as tuple", %{pid: pid} do
-    assert {_query, %Result{rows: [[~N[2017-01-01 12:10:00.000000]]]}} =
+    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
       act(pid, "datetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "datetime2 as tuple", %{pid: pid} do
-    assert {_query, %Result{rows: [[~N[2017-01-01 12:10:00.000000]]]}} =
+    assert {_query, %Result{rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} =
       act(pid, "datetime2", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
