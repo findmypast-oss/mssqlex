@@ -41,11 +41,11 @@ defmodule Mssqlex.Protocol do
                                     | {:error, Exception.t}
   def connect(opts) do
     conn_opts = [
-      {"DRIVER", opts[:odbc_driver]},
-      {"SERVER", opts[:hostname]},
-      {"DATABASE", opts[:database]},
-      {"UID", opts[:username]},
-      {"PWD", opts[:password]}
+      {"DRIVER", opts[:odbc_driver] || "{ODBC Driver 13 for SQL Server}"},
+      {"SERVER", opts[:hostname] || System.get_env("MSSQL_HST") || "localhost"},
+      {"DATABASE", opts[:database] || System.get_env("MSSQL_DB")},
+      {"UID", opts[:username] || System.get_env("MSSQL_UID")},
+      {"PWD", opts[:password] || System.get_env("MSSQL_PWD")}
     ]
     conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
       acc <> "#{key}=#{value};" end)
@@ -185,7 +185,7 @@ defmodule Mssqlex.Protocol do
     {status, message, new_state} = do_query(query, params, opts, state)
 
     case new_state.mssql do
-      :idle -> 
+      :idle ->
         with {:ok, _, post_commit_state} <- handle_commit(opts, new_state)
         do
           {status, message, post_commit_state}
