@@ -44,8 +44,12 @@ defmodule Mssqlex.ODBC do
                                            | {:updated, non_neg_integer()}}
                                            | {:error, Exception.t}
   def query(pid, statement, params) do
-    GenServer.call(pid,
-      {:query, %{statement: IO.iodata_to_binary(statement), params: params}})
+    if Process.alive?(pid) do
+      GenServer.call(pid,
+        {:query, %{statement: IO.iodata_to_binary(statement), params: params}})
+    else
+      {:error, :no_connection}
+    end
   end
 
   @doc """
@@ -58,7 +62,11 @@ defmodule Mssqlex.ODBC do
   """
   @spec commit(pid()) :: :ok | {:error, Exception.t}
   def commit(pid) do
-    GenServer.call(pid, :commit)
+    if Process.alive?(pid) do
+      GenServer.call(pid, :commit)
+    else
+      {:error, %Mssqlex.Error{message: :no_connection} }
+    end
   end
 
   @doc """
@@ -68,7 +76,11 @@ defmodule Mssqlex.ODBC do
   """
   @spec rollback(pid()) :: :ok | {:error, Exception.t}
   def rollback(pid) do
-    GenServer.call(pid, :rollback)
+    if Process.alive?(pid) do
+      GenServer.call(pid, :rollback)
+    else
+      {:error, %Mssqlex.Error{message: :no_connection} }
+    end
   end
 
   @doc """
