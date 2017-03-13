@@ -98,6 +98,10 @@ defmodule Mssqlex.Type do
     end
   end
 
+  def encode(nil, _) do
+    {:sql_integer, [:null]}
+  end
+
   def encode(value, _) do
     raise %Mssqlex.Error{
       message: "could not parse param #{inspect value} of unrecognised type."}
