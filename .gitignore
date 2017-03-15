@@ -6,6 +6,7 @@
 /cover
 /deps
 /doc
+/docs
 erl_crash.dump
 *.ez
 

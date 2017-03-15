@@ -8,3 +8,7 @@ install:
 
 script:
   - docker-compose run mssqlex
+
+after_script:
+  - docker-compose build mssqlex_inch_ci
+  - docker-compose run mssqlex_inch_ci
