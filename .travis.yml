@@ -1,5 +1,9 @@
 sudo: required
 
+language: elixir
+elixir:
+  - 1.4
+
 services:
   - docker
 
@@ -10,5 +14,5 @@ script:
   - docker-compose run mssqlex
 
 after_script:
-  - docker-compose build mssqlex_inch_ci
-  - docker-compose run mssqlex_inch_ci
+  - MIX_ENV=docs mix deps.get
+  - MIX_ENV=docs mix inch.report

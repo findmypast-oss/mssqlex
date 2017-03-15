@@ -17,10 +17,3 @@ services:
     depends_on:
       - sql_server
     command: ["./wait-for-it.sh", "sql_server:1433", "--", "mix", "coveralls.travis"]
-
-  mssqlex_inch_ci:
-    build: .
-    environment:
-      - MIX_ENV=docs
-      - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
-    command: mix inch.report
