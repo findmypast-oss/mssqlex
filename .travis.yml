@@ -15,5 +15,6 @@ script:
 
 after_script:
   - mix local.hex --force
+  - mix local.rebar --force
   - MIX_ENV=docs mix deps.get
   - MIX_ENV=docs mix inch.report
