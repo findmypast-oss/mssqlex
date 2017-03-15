@@ -14,5 +14,6 @@ script:
   - docker-compose run mssqlex
 
 after_script:
+  - mix local.hex --force
   - MIX_ENV=docs mix deps.get
   - MIX_ENV=docs mix inch.report
