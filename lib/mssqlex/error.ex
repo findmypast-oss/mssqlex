@@ -7,11 +7,12 @@ defmodule Mssqlex.Error do
     or the string representation of the code if it cannot be translated.
   """
 
-  defexception [:message, :odbc_code]
+  defexception [:message, :odbc_code, constraint_violations: []]
 
   @type t :: %__MODULE__{
     message: binary(),
-    odbc_code: atom() | binary()
+    odbc_code: atom() | binary(),
+    constraint_violations: Keyword.t
   }
 
   @not_allowed_in_transaction_messages [226, 574]
@@ -20,8 +21,9 @@ defmodule Mssqlex.Error do
   @spec exception(binary()) :: t()
   def exception({_, _, reason} = message) do
     %__MODULE__{
-      message: to_string(reason),
-      odbc_code: get_code(message)
+      message: to_string(to_string reason),
+      odbc_code: get_code(message),
+      constraint_violations: get_constraint_violations(to_string reason)
     }
   end
 
@@ -48,4 +50,18 @@ defmodule Mssqlex.Error do
   defp translate("42000"), do: :syntax_error_or_access_violation
   defp translate(code), do: code
 
+  defp get_constraint_violations(reason) do
+    constraint_checks =
+      [unique: ~r/Violation of UNIQUE KEY constraint '(\S+?)'./,
+       foreign_key: ~r/conflicted with the FOREIGN KEY constraint "(\S+?)"./,
+       check: ~r/conflicted with the CHECK constraint "(\S+?)"./]
+    extract = fn {key, test}, acc ->
+      case Regex.scan(test, reason, capture: :all_but_first) do
+        [] -> acc
+        matches -> Enum.reduce(matches, acc, fn [match], acc ->
+                     [{key, match} | acc] end)
+      end
+    end
+    Enum.reduce(constraint_checks, [], extract)
+  end
 end

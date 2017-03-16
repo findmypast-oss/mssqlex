@@ -1,6 +1,5 @@
 defmodule Mssqlex.TypesTest do
   use ExUnit.Case, async: true
-  @moduletag :only
 
   alias Mssqlex.Result
 
