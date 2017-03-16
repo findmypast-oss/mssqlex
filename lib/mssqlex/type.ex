@@ -52,7 +52,7 @@ defmodule Mssqlex.Type do
   end
 
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
-    precision = if usec == 0, do: 0, else: 6
+    precision = if usec == 0, do: 0, else: 2
     encoded = NaiveDateTime.from_erl!(
       {{year, month, day}, {hour, minute, sec}}, {usec, precision})
     |> to_string
