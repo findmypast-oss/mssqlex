@@ -54,7 +54,7 @@ defmodule Mssqlex.Error do
     constraint_checks =
       [unique: ~r/Violation of UNIQUE KEY constraint '(\S+?)'./,
        unique: ~r/Cannot insert duplicate key row .* with unique index '(\S+?)'/,
-       foreign_key: ~r/conflicted with the (FOREIGN KEY|REFERENCE) constraint "(\S+?)"./,
+       foreign_key: ~r/conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(\S+?)"./,
        check: ~r/conflicted with the CHECK constraint "(\S+?)"./]
     extract = fn {key, test}, acc ->
       case Regex.scan(test, reason, capture: :all_but_first) do
