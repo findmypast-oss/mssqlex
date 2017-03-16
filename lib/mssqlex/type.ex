@@ -132,6 +132,10 @@ defmodule Mssqlex.Type do
     nil
   end
 
+  def decode({date, {h, m, s}}, _) do
+    {date, {h, m, s, 0}}
+  end
+
   def decode(value, _) do
     value
   end
