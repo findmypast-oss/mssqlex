@@ -22,6 +22,19 @@ defmodule Mssqlex.ConstraintsTest do
     assert error.constraint_violations == [unique: "id_unique"]
   end
 
+  test "Unique index", %{pid: pid} do
+    table_name = "constraints_test.dbo.uniq_ix"
+    Mssqlex.query!(pid, """
+    CREATE TABLE #{table_name} (id int);
+    CREATE UNIQUE INDEX id_unique ON #{table_name} (id);
+    """, [])
+    Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
+    error = assert_raise Mssqlex.Error, fn ->
+      Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
+    end
+    assert error.constraint_violations == [unique: "id_unique"]
+  end
+
   test "Foreign Key constraint", %{pid: pid} do
     assoc_table_name = "constraints_test.dbo.assoc"
     table_name = "constraints_test.dbo.fk"
