@@ -10,9 +10,10 @@ defmodule Mssqlex.Query do
   @type t :: %__MODULE__{
     name: iodata,
     statement: iodata,
+    columns: [String.t] | nil
   }
 
-  defstruct [:name, :statement]
+  defstruct [:name, :statement, :columns]
 end
 
 defimpl DBConnection.Query, for: Mssqlex.Query do

@@ -211,8 +211,8 @@ defmodule Mssqlex.Protocol do
         end
       {:error, reason} ->
         {:error, reason, state}
-      {:selected, _columns, rows} ->
-        {:ok, %Result{rows: rows, num_rows: Enum.count(rows)}, state}
+      {:selected, columns, rows} ->
+        {:ok, %Result{columns: columns, rows: rows, num_rows: Enum.count(rows)}, state}
       {:updated, num_rows} ->
         {:ok, %Result{num_rows: num_rows}, state}
     end

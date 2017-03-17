@@ -20,7 +20,7 @@ defmodule Mssqlex.TransactionTest do
         "INSERT INTO #{table_name} VALUES ('Steven');", [])
       result
     end)
-    assert {:ok, _query, %Result{rows: [["Steven"]]}} =
+    assert {:ok, _query, %Result{columns: ['name'], rows: [["Steven"]]}} =
       Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
@@ -40,8 +40,9 @@ defmodule Mssqlex.TransactionTest do
       end)
       result
     end)
-    assert {:ok, _query, %Result{rows: [["Steven"], ["Jae"]]}} =
-      Mssqlex.query(pid, "SELECT * from #{table_name};", [])
+    assert {:ok, _query, %Result{columns: ['name'],
+      rows: [["Steven"], ["Jae"]]}} = Mssqlex.query(pid,
+      "SELECT * from #{table_name};", [])
   end
 
   test "failing transaction test", %{pid: pid} do
@@ -118,7 +119,7 @@ defmodule Mssqlex.TransactionTest do
         "INSERT INTO #{table_name} VALUES ('Steven');", [])
       result
     end, [mode: :savepoint])
-    assert {:ok, _query, %Result{rows: [["Steven"]]}} =
+    assert {:ok, _query, %Result{columns: ['name'], rows: [["Steven"]]}} =
       Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
@@ -139,7 +140,7 @@ defmodule Mssqlex.TransactionTest do
       end, [mode: :savepoint])
     end
 
-    assert {:ok, _, %Result{rows: [["Jae"]]}} =
+    assert {:ok, _, %Result{columns: ['name'], rows: [["Jae"]]}} =
       Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 end
