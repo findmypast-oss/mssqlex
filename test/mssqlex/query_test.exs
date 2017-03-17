@@ -18,7 +18,7 @@ defmodule Mssqlex.QueryTest do
     assert {:ok, _, %Result{num_rows: 1}} = Mssqlex.query(pid,
       ["INSERT INTO query_test.dbo.simple_select VALUES ('Steven');"], [])
 
-    assert {:ok, _, %Result{columns: ['name'], num_rows: 1, rows: [["Steven"]]}}
+    assert {:ok, _, %Result{columns: ["name"], num_rows: 1, rows: [["Steven"]]}}
       = Mssqlex.query(pid, "SELECT * FROM query_test.dbo.simple_select;", [])
   end
 
@@ -32,7 +32,7 @@ defmodule Mssqlex.QueryTest do
       [1, "Jae", "2017-01-01 12:01:01.3450000"])
 
     assert {:ok, _, %Result{
-               columns: ['id', 'name', 'joined'],
+               columns: ["id", "name", "joined"],
                num_rows: 1,
                rows: [[1, "Jae", _]]}} =
       Mssqlex.query(pid, "SELECT * FROM query_test.dbo.parametrized_query;", [])

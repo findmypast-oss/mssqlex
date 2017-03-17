@@ -212,7 +212,7 @@ defmodule Mssqlex.Protocol do
       {:error, reason} ->
         {:error, reason, state}
       {:selected, columns, rows} ->
-        {:ok, %Result{columns: columns, rows: rows, num_rows: Enum.count(rows)}, state}
+        {:ok, %Result{columns: Enum.map(columns, &(to_string(&1))), rows: rows, num_rows: Enum.count(rows)}, state}
       {:updated, num_rows} ->
         {:ok, %Result{num_rows: num_rows}, state}
     end
