@@ -57,10 +57,10 @@ defmodule Mssqlex.Error do
        foreign_key: ~r/conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(\S+?)"./,
        check: ~r/conflicted with the CHECK constraint "(\S+?)"./]
     extract = fn {key, test}, acc ->
+      concatenate_match = fn [match], acc -> [{key, match} | acc] end
       case Regex.scan(test, reason, capture: :all_but_first) do
         [] -> acc
-        matches -> Enum.reduce(matches, acc, fn [match], acc ->
-                     [{key, match} | acc] end)
+        matches -> Enum.reduce(matches, acc, concatenate_match)
       end
     end
     Enum.reduce(constraint_checks, [], extract)
