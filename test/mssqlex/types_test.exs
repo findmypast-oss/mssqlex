@@ -6,7 +6,7 @@ defmodule Mssqlex.TypesTest do
   setup_all do
     {:ok, pid} = Mssqlex.start_link([])
     Mssqlex.query!(pid, "DROP DATABASE IF EXISTS types_test;", [])
-    {:ok, _, _} = Mssqlex.query(pid, "CREATE DATABASE types_test;", [])
+    {:ok, _, _} = Mssqlex.query(pid, "CREATE DATABASE types_test COLLATE Latin1_General_CS_AS_KS_WS;", [])
 
     {:ok, [pid: pid]}
   end
@@ -31,6 +31,11 @@ defmodule Mssqlex.TypesTest do
   test "varchar", %{pid: pid} do
     assert {_query, %Result{columns: ["test"], rows: [["Nathan"]]}} =
       act(pid, "varchar(6)", ["Nathan"])
+  end
+
+  test "varchar with unicode characters", %{pid: pid} do
+    assert {_query, %Result{columns: ["test"], rows: [["Nathan Molnár"]]}} =
+      act(pid, "varchar(15)", ["Nathan Molnár"])
   end
 
   test "nvarchar", %{pid: pid} do

@@ -39,16 +39,16 @@ defmodule Mssqlex.Type do
   def encode({_year, _month, _day} = date, _) do
     encoded = Date.from_erl!(date)
     |> to_string
-    |> to_charlist
-    {{:sql_varchar, length(encoded)}, [encoded]}
+    |> :unicode.characters_to_binary(:unicode, :latin1)
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode({hour, minute, sec, usec}, _) do
     precision = if usec == 0, do: 0, else: 6
     encoded = Time.from_erl!({hour, minute, sec}, {usec, precision})
     |> to_string
-    |> to_charlist
-    {{:sql_varchar, length(encoded)}, [encoded]}
+    |> :unicode.characters_to_binary(:unicode, :latin1)
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
@@ -56,8 +56,8 @@ defmodule Mssqlex.Type do
     encoded = NaiveDateTime.from_erl!(
       {{year, month, day}, {hour, minute, sec}}, {usec, precision})
     |> to_string
-    |> to_charlist
-    {{:sql_varchar, length(encoded)}, [encoded]}
+    |> :unicode.characters_to_binary(:unicode, :latin1)
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_integer(value)
@@ -67,34 +67,28 @@ defmodule Mssqlex.Type do
   end
 
   def encode(value, _) when is_integer(value) do
-    encoded = value |> to_string |> to_charlist
-    {{:sql_varchar, length(encoded)}, [encoded]}
+    encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_float(value) do
-    encoded = value |> to_string |> to_charlist
-    {{:sql_varchar, length(encoded)}, [encoded]}
+    encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(%Decimal{} = value, _) do
-    encoded = value |> to_string |> to_charlist
-    {{:sql_varchar, length(encoded)}, [encoded]}
+    encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_binary(value) do
-    case :unicode.characters_to_binary(value, :unicode, :latin1) do
-      {_, _, _} ->
-        with utf16 when is_bitstring(utf16) <-
-          :unicode.characters_to_binary(value, :unicode, {:utf16, :little})
-        do
-          {{:sql_wvarchar, String.length(utf16)}, [utf16]}
-        else
-          _ -> raise %Mssqlex.Error{
-            message: "failed to convert string to UTF16LE"}
-        end
-      encoded ->
-        latin1 = to_charlist(encoded)
-        {{:sql_varchar, length(latin1)}, [latin1]}
+    with utf16 when is_bitstring(utf16) <-
+      :unicode.characters_to_binary(value, :unicode, {:utf16, :little})
+    do
+      {{:sql_wvarchar, byte_size(value)}, [utf16]}
+    else
+      _ -> raise %Mssqlex.Error{
+        message: "failed to convert string to UTF16LE"}
     end
   end
 
@@ -117,10 +111,10 @@ defmodule Mssqlex.Type do
   end
 
   def decode(value, opts) when is_binary(value) do
-    if opts[:preserve_encoding] do
+    if opts[:preserve_encoding] || String.printable?(value) do
       value
     else
-      :unicode.characters_to_binary(value, {:utf16, :little})
+      :unicode.characters_to_binary(value, {:utf16, :little}, :unicode)
     end
   end
 

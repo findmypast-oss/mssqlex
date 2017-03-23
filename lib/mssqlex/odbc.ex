@@ -108,6 +108,7 @@ defmodule Mssqlex.ODBC do
     |> Keyword.put_new(:timeout, 5000)
     |> Keyword.put_new(:extended_errors, :on)
     |> Keyword.put_new(:tuple_row, :off)
+    |> Keyword.put_new(:binary_strings, :on)
 
     case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
       {:ok, pid} -> {:ok, pid}
