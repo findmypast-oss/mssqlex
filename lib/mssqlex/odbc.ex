@@ -48,7 +48,7 @@ defmodule Mssqlex.ODBC do
       GenServer.call(pid,
         {:query, %{statement: IO.iodata_to_binary(statement), params: params}})
     else
-      {:error, :no_connection}
+      {:error, %Mssqlex.Error{message: :no_connection}}
     end
   end
 
@@ -65,7 +65,7 @@ defmodule Mssqlex.ODBC do
     if Process.alive?(pid) do
       GenServer.call(pid, :commit)
     else
-      {:error, %Mssqlex.Error{message: :no_connection} }
+      {:error, %Mssqlex.Error{message: :no_connection}}
     end
   end
 
@@ -79,7 +79,7 @@ defmodule Mssqlex.ODBC do
     if Process.alive?(pid) do
       GenServer.call(pid, :rollback)
     else
-      {:error, %Mssqlex.Error{message: :no_connection} }
+      {:error, %Mssqlex.Error{message: :no_connection}}
     end
   end
 
