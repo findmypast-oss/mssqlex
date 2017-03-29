@@ -209,6 +209,9 @@ defmodule Mssqlex.Protocol do
           with {:ok, new_state} <- switch_auto_commit(:on, state),
             do: handle_execute(query, params, opts, new_state)
         end
+      {:error,
+        %Mssqlex.Error{odbc_code: :connection_exception} = reason} ->
+        {:disconnect, reason, state}
       {:error, reason} ->
         {:error, reason, state}
       {:selected, columns, rows} ->

@@ -47,7 +47,7 @@ defmodule Mssqlex.Error do
   defp translate("42S01"), do: :base_table_or_view_already_exists
   defp translate("42S02"), do: :base_table_or_view_not_found
   defp translate("28000"), do: :invalid_authorization
-  defp translate("42000"), do: :syntax_error_or_access_violation
+  defp translate("08" <> _), do: :connection_exception
   defp translate(code), do: code
 
   defp get_constraint_violations(reason) do
