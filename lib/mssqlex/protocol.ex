@@ -233,6 +233,15 @@ defmodule Mssqlex.Protocol do
     {:ok, %Result{}, state}
   end
 
+  def ping(state) do
+    query = %Mssqlex.Query{name: "ping", statement: "SELECT 1"}
+    case do_query(query, [], [], state) do
+      {:ok, _, new_state} -> {:ok, new_state}
+      {:error, reason, new_state} -> {:disconnect, reason, new_state}
+      other -> other
+    end
+  end
+
   # @spec handle_declare(query, params, opts :: Keyword.t, state) ::
   #   {:ok, cursor, state} |
   #   {:error | :disconnect, Exception.t, state}
