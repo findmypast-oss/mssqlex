@@ -9,6 +9,8 @@
 
 Adapter to Microsoft SQL Server. Using `DBConnection` and `ODBC`.
 
+It connects to [Ecto](https://github.com/elixir-ecto/ecto) with [MssqlEcto](https://github.com/findmypast-oss/mssql_ecto).
+
 ## Installation
 
 Mssqlex requires the [Erlang ODBC application](http://erlang.org/doc/man/odbc.html) to be installed.
