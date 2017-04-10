@@ -41,5 +41,5 @@ The easiest way to get an instance running is to use the SQL Server Docker image
 ```sh
 export MSSQL_UID=sa
 export MSSQL_PWD='ThePa$$word'
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=$MSSQL_PWD' -p 1433:1433 -d microsoft/mssql-server-linux
+docker run -e 'ACCEPT_EULA=Y' -e SA_PASSWORD=$MSSQL_PWD -p 1433:1433 -d microsoft/mssql-server-linux
 ```
