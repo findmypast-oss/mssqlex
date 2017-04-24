@@ -35,6 +35,8 @@ defmodule Mssqlex.Error do
 
   defp get_code({odbc_code, native_code, _reason}) do
     cond do
+      native_code == 1801 ->
+        :database_already_exists
       native_code in @not_allowed_in_transaction_messages ->
         :not_allowed_in_transaction
       odbc_code !== nil ->
