@@ -38,16 +38,17 @@ defmodule Mssqlex.ODBC do
 
   `pid` is the `:odbc` process id
   `statement` is the SQL query string
+  `params` are the parameters to send with the SQL query
   `opts` are options to be passed on to `:odbc`
   """
-  @spec query(pid(), iodata(), Keyword.t) :: {:selected, [binary()], [tuple()]
-                                           | {:updated, non_neg_integer()}}
-                                           | {:error, Exception.t}
-  def query(pid, statement, params) do
+  @spec query(pid(), iodata(), Keyword.t, Keyword.t) :: {:selected, [binary()], [tuple()]
+                                                        | {:updated, non_neg_integer()}}
+                                                        | {:error, Exception.t}
+  def query(pid, statement, params, opts) do
     if Process.alive?(pid) do
       GenServer.call(pid,
         {:query, %{statement: IO.iodata_to_binary(statement), params: params}},
-        Keyword.get(params, :timeout, 5000))
+        Keyword.get(opts, :timeout, 5000))
     else
       {:error, %Mssqlex.Error{message: :no_connection}}
     end

@@ -200,7 +200,7 @@ defmodule Mssqlex.Protocol do
   end
 
   defp do_query(query, params, opts, state) do
-    case ODBC.query(state.pid, query.statement, params) do
+    case ODBC.query(state.pid, query.statement, params, opts) do
       {:error,
         %Mssqlex.Error{odbc_code: :not_allowed_in_transaction} = reason} ->
         if state.mssql == :auto_commit do
