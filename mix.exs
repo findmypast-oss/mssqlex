@@ -5,7 +5,7 @@ defmodule Mssqlex.Mixfile do
     [app: :mssqlex,
      version: "0.6.7",
      description: "Adapter to Microsoft SQL Server. Using DBConnection and ODBC.",
-     elixir: "~> 1.4",
+     elixir: ">= 1.4.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
