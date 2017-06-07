@@ -24,7 +24,7 @@ defmodule Mssqlex.TypesTest do
   test "nchar with preserved encoding", %{pid: pid} do
     expected = :unicode.characters_to_binary("e→ø",
       :unicode, {:utf16, :little})
-    assert {_query, %Result{columns: ["test"], rows: [[ ^expected ]]}} =
+    assert {_query, %Result{columns: ["test"], rows: [[^expected]]}} =
       act(pid, "nchar(3)", ["e→ø"], [preserve_encoding: true])
   end
 
@@ -46,7 +46,7 @@ defmodule Mssqlex.TypesTest do
   test "nvarchar with preserved encoding", %{pid: pid} do
     expected = :unicode.characters_to_binary("e→ø",
       :unicode, {:utf16, :little})
-    assert {_query, %Result{columns: ["test"], rows: [[ ^expected ]]}} =
+    assert {_query, %Result{columns: ["test"], rows: [[^expected]]}} =
       act(pid, "nvarchar(3)", ["e→ø"], [preserve_encoding: true])
   end
 

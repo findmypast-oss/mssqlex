@@ -141,6 +141,6 @@ defmodule Mssqlex.ODBC do
     :odbc.disconnect(state)
   end
 
-  defp handle_errors({:error, reason}), do: {:error, reason |> Error.exception}
+  defp handle_errors({:error, reason}), do: {:error, Error.exception(reason)}
   defp handle_errors(term), do: term
 end

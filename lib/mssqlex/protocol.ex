@@ -64,7 +64,7 @@ defmodule Mssqlex.Protocol do
 
   @doc false
   @spec disconnect(err :: Exception.t, state) :: :ok
-  def disconnect(_err, state = %{pid: pid}) do
+  def disconnect(_err, %{pid: pid} = state) do
     case ODBC.disconnect(pid) do
       :ok -> :ok
       {:error, reason} -> {:error, reason, state}
