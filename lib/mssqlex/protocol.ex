@@ -41,12 +41,13 @@ defmodule Mssqlex.Protocol do
                                     | {:error, Exception.t}
   def connect(opts) do
     conn_opts = [
-      {"DRIVER", opts[:odbc_driver] || "{ODBC Driver 13 for SQL Server}"},
+      {"DRIVER", opts[:odbc_driver] || System.get_env("MSSQL_DVR") || "{ODBC Driver 13 for SQL Server}"},
       {"SERVER", opts[:hostname] || System.get_env("MSSQL_HST") || "localhost"},
       {"DATABASE", opts[:database] || System.get_env("MSSQL_DB")},
       {"UID", opts[:username] || System.get_env("MSSQL_UID")},
       {"PWD", opts[:password] || System.get_env("MSSQL_PWD")}
     ]
+    IO.inspect conn_opts
     conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
       acc <> "#{key}=#{value};" end)
 
