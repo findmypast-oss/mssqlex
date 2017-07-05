@@ -42,7 +42,7 @@ defmodule Mssqlex.Protocol do
   def connect(opts) do
     conn_opts = [
       {"DRIVER", opts[:odbc_driver] || "{ODBC Driver 13 for SQL Server}"},
-      {"SERVER", opts[:hostname] || System.get_env("MSSQL_HST") || "localhost"},
+      {"SERVER", (opts[:hostname] || System.get_env("MSSQL_HST") || "localhost") <> "," <> (opts[:port] || "1433")},
       {"DATABASE", opts[:database] || System.get_env("MSSQL_DB")},
       {"UID", opts[:username] || System.get_env("MSSQL_UID")},
       {"PWD", opts[:password] || System.get_env("MSSQL_PWD")}
