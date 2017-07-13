@@ -37,4 +37,22 @@ defmodule Mssqlex.QueryTest do
                rows: [[1, "Jae", _]]}} =
       Mssqlex.query(pid, "SELECT * FROM query_test.dbo.parametrized_query;", [])
   end
+
+  test "select where in", %{pid: pid} do
+    assert {:ok, _, %Result{}} = Mssqlex.query(pid,
+      "CREATE TABLE query_test.dbo.select_where_in (name varchar(50), age int);", [])
+
+    assert {:ok, _, %Result{num_rows: 1}} = Mssqlex.query(pid,
+      ["INSERT INTO query_test.dbo.select_where_in VALUES (?, ?);"],
+      ["Dexter", 34])
+
+    assert {:ok, _, %Result{num_rows: 1}} = Mssqlex.query(pid,
+      ["INSERT INTO query_test.dbo.select_where_in VALUES (?, ?);"],
+      ["Malcolm", 41])
+
+    assert {:ok, _, %Result{columns: ["name", "age"],
+                            num_rows: 2,
+                            rows: [["Dexter", 34], ["Malcolm", 41]]}} =
+      Mssqlex.query(pid, "SELECT * FROM query_test.dbo.select_where_in WHERE name IN (?, ?)", ["Dexter", "Malcolm"])
+  end
 end
