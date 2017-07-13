@@ -1,4 +1,4 @@
-# Mssqlex
+![Mssqlex](mssqlex.png "Mssqlex")
 
 [![Build Status](https://travis-ci.org/findmypast-oss/mssqlex.svg?branch=master)](https://travis-ci.org/findmypast-oss/mssqlex)
 [![Coverage Status](https://coveralls.io/repos/github/findmypast-oss/mssqlex/badge.svg)](https://coveralls.io/github/findmypast-oss/mssqlex)
