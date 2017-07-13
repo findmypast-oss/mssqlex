@@ -39,7 +39,7 @@ defmodule Mssqlex.Mixfile do
 
   defp package do
     [name: :mssqlex,
-     files: ["lib", "mix.exs", "README.md", "LICENSE"],
+     files: ["lib", "mix.exs", "README.md", "mssqlex.png", "LICENSE"],
      maintainers: ["Steven Blowers", "Jae Bach Hardie"],
      licenses: ["Apache 2.0"],
      links: %{"GitHub" => "https://github.com/findmypast-oss/mssqlex"}]
