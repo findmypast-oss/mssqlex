@@ -54,5 +54,15 @@ defmodule Mssqlex.QueryTest do
                             num_rows: 2,
                             rows: [["Dexter", 34], ["Malcolm", 41]]}} =
       Mssqlex.query(pid, "SELECT * FROM query_test.dbo.select_where_in WHERE name IN (?, ?)", ["Dexter", "Malcolm"])
+
+    assert {:ok, _, %Result{columns: ["name", "age"],
+                            num_rows: 1,
+                            rows: [["Malcolm", 41]]}} =
+      Mssqlex.query(pid, "SELECT * FROM query_test.dbo.select_where_in WHERE (name IN (?, ?)) AND (age = ?)", ["Dexter", "Malcolm", 41])
+
+    assert {:ok, _, %Result{columns: ["name", "age"],
+                            num_rows: 1,
+                            rows: [["Dexter", 34]]}} =
+      Mssqlex.query(pid, "SELECT * FROM query_test.dbo.select_where_in WHERE (age = ?) AND (name IN (?, ?))", [34, "Dexter", "Malcolm"])
   end
 end
