@@ -19,4 +19,4 @@ services:
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     depends_on:
       - sql_server
-    command: ["./wait-for-it.sh", "sql_server:1433", "--", "mix", "coveralls.travis"]
+    command: ["./wait-for-it.sh", "sql_server:9204", "--", "mix", "coveralls.travis"]
