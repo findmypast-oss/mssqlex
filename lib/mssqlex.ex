@@ -15,14 +15,22 @@ defmodule Mssqlex do
 
   `opts` expects a keyword list with zero or more of:
 
-    * `:odbc_driver` - The driver the adapter will use
-      (default: {ODBC Driver 13 for SQL Server})
-    * `:hostname` - The server hostname (default: localhost)
-    * `:port` - The server port number
-    * `:database` - The name of the database
-      (default: MSSQL_DB environment variable)
-    * `:username` - Username (default: MSSQL_UID environment variable)
-    * `:password` - User password (default: MSSQL_PWD environment variable)
+    * `:odbc_driver` - The driver the adapter will use.
+        * environment variable: `MSSQL_DVR`
+        * default value: {ODBC Driver 13 for SQL Server}
+    * `:hostname` - The server hostname.
+        * environment variable: `MSSQL_HST`
+        * default value: localhost
+    * `:instance_name` - OPTIONAL. The name of the instance, if using named instances.
+        * environment variable: `MSSQL_IN`
+    * `:port` - OPTIONAL. The server port number.
+        * environment variable: `MSSQL_PRT`
+    * `:database` - The name of the database.
+        * environment variable: `MSSQL_DB`
+    * `:username` - Username.
+        * environment variable: `MSSQL_UID`
+    * `:password` - User's password.
+        * environment variable: `MSSQL_PWD`
 
   `Mssqlex` uses the `DBConnection` framework and supports all `DBConnection`
   options like `:idle`, `:after_connect` etc.

@@ -46,7 +46,7 @@ defmodule Mssqlex.Protocol do
     port = opts[:port] || System.get_env("MSSQL_PRT")
 
     conn_opts = [
-      {"Driver", opts[:odbc_driver] || "{ODBC Driver 13 for SQL Server}"},
+      {"Driver", opts[:odbc_driver] || System.get_env("MSSQL_DVR") || "{ODBC Driver 13 for SQL Server}"},
       {"Server", build_server_address(server_address, instance_name, port)},
       {"Database", opts[:database] || System.get_env("MSSQL_DB")},
       {"UID", opts[:username] || System.get_env("MSSQL_UID")},
