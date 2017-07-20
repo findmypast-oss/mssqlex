@@ -23,6 +23,7 @@ defmodule Mssqlex do
       (default: MSSQL_DB environment variable)
     * `:username` - Username (default: MSSQL_UID environment variable)
     * `:password` - User password (default: MSSQL_PWD environment variable)
+    * `:quoted_identifier` - Set to `true` for Sybase (default: `nil`)
 
   `Mssqlex` uses the `DBConnection` framework and supports all `DBConnection`
   options like `:idle`, `:after_connect` etc.

@@ -8,7 +8,7 @@
 [![Hex.pm Downloads](https://img.shields.io/hexpm/dt/mssqlex.svg)](https://hex.pm/packages/mssqlex)
 [![License](https://img.shields.io/hexpm/l/mssqlex.svg)](https://github.com/findmypast-oss/mssqlex/blob/master/LICENSE)
 
-Adapter to Microsoft SQL Server. Using `DBConnection` and `ODBC`.
+Adapter to Microsoft SQL Server and Sybase. Using `DBConnection` and `ODBC`.
 
 It connects to [Ecto](https://github.com/elixir-ecto/ecto) with [MssqlEcto](https://github.com/findmypast-oss/mssql_ecto).
 
@@ -43,4 +43,15 @@ The easiest way to get an instance running is to use the SQL Server Docker image
 export MSSQL_UID=sa
 export MSSQL_PWD='ThePa$$word'
 docker run -e 'ACCEPT_EULA=Y' -e SA_PASSWORD=$MSSQL_PWD -p 1433:1433 -d microsoft/mssql-server-linux
+```
+
+## Sybase
+
+Experimental support for Sybase has also been tested as Sybase also implements the TDS protocol. Example configuration:
+
+```elixir
+adapter: MssqlEcto,
+hostname: "localhost,5000;TDS_Version=5.0",
+odbc_driver: "{FreeTDS}", # See your `odbcinst.ini`
+quoted_identifier: true,
 ```

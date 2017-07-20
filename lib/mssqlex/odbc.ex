@@ -106,6 +106,7 @@ defmodule Mssqlex.ODBC do
   def init(opts) do
     connect_opts = opts
     |> Keyword.delete_first(:conn_str)
+    |> Keyword.delete_first(:quoted_identifier)
     |> Keyword.put_new(:auto_commit, :off)
     |> Keyword.put_new(:timeout, 5000)
     |> Keyword.put_new(:extended_errors, :on)
@@ -113,7 +114,10 @@ defmodule Mssqlex.ODBC do
     |> Keyword.put_new(:binary_strings, :on)
 
     case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
-      {:ok, pid} -> {:ok, pid}
+      {:ok, pid} ->
+        if opts[:quoted_identifier], do:
+          :odbc.sql_query(pid, 'SET quoted_identifier ON')
+        {:ok, pid}
       {:error, reason} -> {:stop, reason}
     end
   end
