@@ -18,7 +18,7 @@ defmodule Mssqlex do
     * `:odbc_driver` - The driver the adapter will use
       (default: {ODBC Driver 13 for SQL Server})
     * `:hostname` - The server hostname (default: localhost)
-    * `:port` - The server port number (default: 1433)
+    * `:port` - The server port number
     * `:database` - The name of the database
       (default: MSSQL_DB environment variable)
     * `:username` - Username (default: MSSQL_UID environment variable)
