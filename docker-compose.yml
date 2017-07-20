@@ -5,6 +5,7 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=TestPa$$word123
+      - MSSQL_TCP_PORT=9204
 
   mssqlex:
     build: .
@@ -13,27 +14,9 @@ services:
       - MSSQL_UID=sa
       - MSSQL_PWD=TestPa$$word123
       - MSSQL_HST=sql_server
+      - MSSQL_IN=MSSQLSERVER
+      - MSSQL_PRT=9204
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     depends_on:
       - sql_server
     command: ["./wait-for-it.sh", "sql_server:1433", "--", "mix", "coveralls.travis"]
-
-  sql_server_custom:
-    image: microsoft/mssql-server-linux
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=R3E11*88
-      - MSSQL_TCP_PORT=9204
-
-  mssqlex_custom:
-    build: .
-    environment:
-      - MIX_ENV=test
-      - MSSQL_UID=sa
-      - MSSQL_PWD=R3E11*88
-      - MSSQL_HST=sql_server_custom
-      - MSSQL_IN=MSSQLSERVER
-      - MSSQL_PRT=9204
-    depends_on:
-      - sql_server_custom
-    command: ["./wait-for-it.sh", "sql_server_custom:9204", "--", "mix", "test"]

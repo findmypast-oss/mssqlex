@@ -9,11 +9,9 @@ services:
 
 install:
   - docker-compose build mssqlex
-  - docker-compose build mssqlex_custom_port
 
 script:
   - docker-compose run mssqlex
-  - docker-compose run mssqlex_custom_port
 
 after_script:
   - mix local.hex --force
