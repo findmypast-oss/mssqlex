@@ -1,4 +1,4 @@
-# ![Mssqlex](mssqlex.png "Mssqlex")
+# Mssqlex
 
 [![Build Status](https://travis-ci.org/findmypast-oss/mssqlex.svg?branch=master)](https://travis-ci.org/findmypast-oss/mssqlex)
 [![Coverage Status](https://coveralls.io/repos/github/findmypast-oss/mssqlex/badge.svg)](https://coveralls.io/github/findmypast-oss/mssqlex)
@@ -28,7 +28,7 @@ by adding `mssqlex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:mssqlex, "~> 0.7"}]
+  [{:mssqlex, "~> 0.8.0"}]
 end
 ```
 
