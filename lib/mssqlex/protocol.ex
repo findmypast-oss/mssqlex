@@ -40,10 +40,15 @@ defmodule Mssqlex.Protocol do
   @spec connect(opts :: Keyword.t) :: {:ok, state}
                                     | {:error, Exception.t}
   def connect(opts) do
+
+    server_address = opts[:hostname] || System.get_env("MSSQL_HST") || "localhost"
+    instance_name = opts[:instance_name] || System.get_env("MSSQL_IN")
+    port = opts[:port] || System.get_env("MSSQL_PRT")
+
     conn_opts = [
-      {"DRIVER", opts[:odbc_driver] || "{ODBC Driver 13 for SQL Server}"},
-      {"SERVER", (opts[:hostname] || System.get_env("MSSQL_HST") || "localhost") <> "," <> (opts[:port] || "1433")},
-      {"DATABASE", opts[:database] || System.get_env("MSSQL_DB")},
+      {"Driver", opts[:odbc_driver] || System.get_env("MSSQL_DVR") || "{ODBC Driver 13 for SQL Server}"},
+      {"Server", build_server_address(server_address, instance_name, port)},
+      {"Database", opts[:database] || System.get_env("MSSQL_DB")},
       {"UID", opts[:username] || System.get_env("MSSQL_UID")},
       {"PWD", opts[:password] || System.get_env("MSSQL_PWD")}
     ]
@@ -61,6 +66,14 @@ defmodule Mssqlex.Protocol do
       response -> response
     end
   end
+
+  @spec build_server_address(String.t, String.t, String.t) :: String.t
+  defp build_server_address(server_address, instance_name, port)
+
+  defp build_server_address(server_address, nil, nil), do: server_address
+  defp build_server_address(server_address, instance_name, nil), do: "#{server_address}\\#{instance_name}"
+  defp build_server_address(server_address, nil, port), do: "#{server_address},#{port}"
+  defp build_server_address(server_address, instance_name, port), do: "#{server_address}\\#{instance_name},#{port}"
 
   @doc false
   @spec disconnect(err :: Exception.t, state) :: :ok
