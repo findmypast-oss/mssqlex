@@ -44,3 +44,9 @@ export MSSQL_UID=sa
 export MSSQL_PWD='ThePa$$word'
 docker run -e 'ACCEPT_EULA=Y' -e SA_PASSWORD=$MSSQL_PWD -p 1433:1433 -d microsoft/mssql-server-linux
 ```
+
+## Contributing
+
+### Code of Conduct
+
+This project had a [Code of Conduct](https://github.com/findmypast-oss/mssql_ecto/blob/master/CODE_OF_CONDUCT.md) if you wish to contribute to this project, please abide by its rules.
