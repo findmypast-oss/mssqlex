@@ -109,7 +109,6 @@ defmodule Mssqlex.TransactionTest do
       Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
-  @tag :only
   test "Commit savepoint", %{pid: pid} do
     table_name = "transaction_test.dbo.commit_savepoint"
     assert {:ok, %Result{}} = DBConnection.transaction(pid, fn pid ->
@@ -141,6 +140,41 @@ defmodule Mssqlex.TransactionTest do
     end
 
     assert {:ok, _, %Result{columns: ["name"], rows: [["Jae"]]}} =
+      Mssqlex.query(pid, "SELECT * from #{table_name};", [])
+  end
+
+  test "savepoint inside transaction", %{pid: pid} do
+    table_name = "transaction_test.dbo.savepoint_in_transaction"
+
+    DBConnection.transaction(pid, fn(pid) ->
+      Mssqlex.query!(pid, "CREATE TABLE #{table_name} (name varchar(3));", [])
+
+      DBConnection.transaction(pid, fn(pid) ->
+        Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES ('Tom')", [])
+      end, [mode: :savepoint])
+    end)
+
+
+    assert {:ok, _, %Result{columns: ["name"], rows: [["Tom"]]}} =
+      Mssqlex.query(pid, "SELECT * from #{table_name};", [])
+  end
+
+  test "savepoint rollback", %{pid: pid} do
+    table_name = "transaction_test.dbo.savepoint_rollback"
+
+    Mssqlex.query!(pid, "CREATE TABLE #{table_name} (name varchar(3));", [])
+
+    DBConnection.transaction(pid, fn(pid) ->
+      Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES ('Joe')", [])
+
+      DBConnection.transaction(pid, fn(pid) ->
+        Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES ('Tom')", [])
+        DBConnection.rollback(pid, "Some reason")
+      end, [mode: :savepoint])
+    end)
+
+
+    assert {:ok, _, %Result{columns: ["name"], num_rows: 0, rows: []}} =
       Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 end
