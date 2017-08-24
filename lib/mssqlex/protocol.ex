@@ -107,8 +107,9 @@ defmodule Mssqlex.Protocol do
 
   @doc false
   @spec handle_begin(opts :: Keyword.t, state) ::
-    {:ok, result, state}
-  | {:error | :disconnect, Exception.t, state}
+    {:ok, result, state} |
+    {DBConnection.status, state} |
+    {:error | :disconnect, Exception.t, state}
   def handle_begin(opts, state) do
     case Keyword.get(opts, :mode, :transaction) do
       :transaction -> handle_transaction(:begin, opts, state)
@@ -119,6 +120,7 @@ defmodule Mssqlex.Protocol do
   @doc false
   @spec handle_commit(opts :: Keyword.t, state) ::
     {:ok, result, state} |
+    {DBConnection.status, state} |
     {:error | :disconnect, Exception.t, state}
   def handle_commit(opts, state) do
     case Keyword.get(opts, :mode, :transaction) do
@@ -130,6 +132,7 @@ defmodule Mssqlex.Protocol do
   @doc false
   @spec handle_rollback(opts :: Keyword.t, state) ::
     {:ok, result, state} |
+    {DBConnection.status, state} |
     {:error | :disconnect, Exception.t, state}
   def handle_rollback(opts, state) do
     case Keyword.get(opts, :mode, :transaction) do
