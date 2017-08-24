@@ -143,25 +143,50 @@ defmodule Mssqlex.Protocol do
 
   defp handle_transaction(:begin, _opts, state) do
     case state.mssql do
-      :idle -> {:ok, %Result{num_rows: 0}, %{state | mssql: :transaction}}
-      :transaction -> {:error,
-      %Mssqlex.Error{message: "Already in transaction"},
-      state}
-      :auto_commit -> {:error,
-      %Mssqlex.Error{message: "Transactions not allowed in autocommit mode"},
-      state}
+      :idle ->
+        {:ok, %Result{num_rows: 0}, %{state | mssql: :transaction}}
+      :transaction ->
+        {:transaction, state}
+      :auto_commit ->
+        {:error, %Mssqlex.Error{message: "Transactions not allowed in autocommit mode"}, state}
     end
   end
   defp handle_transaction(:commit, _opts, state) do
-    case ODBC.commit(state.pid) do
-      :ok -> {:ok, %Result{}, %{state | mssql: :idle}}
-      {:error, reason} -> {:error, reason, state}
+    case state.mssql do
+      :idle ->
+        commit_transaction(state) # Because everything is a transaction with ODBC
+      :transaction ->
+        commit_transaction(state)
+      :auto_commit ->
+        {:error, %Mssqlex.Error{message: "Transactions not allowed in autocommit mode"}, state}
     end
   end
   defp handle_transaction(:rollback, _opts, state) do
+    case state.mssql do
+      :idle ->
+        {:idle, state}
+      :transaction ->
+        rollback_transaction(state)
+      :auto_commit ->
+        {:error, %Mssqlex.Error{message: "Transactions not allowed in autocommit mode"}, state}
+    end
+  end
+
+  defp commit_transaction(state) do
+    case ODBC.commit(state.pid) do
+      :ok ->
+        {:ok, %Result{}, %{state | mssql: :idle}}
+      {:error, reason} ->
+        {:error, reason, state}
+    end
+  end
+
+  defp rollback_transaction(state) do
     case ODBC.rollback(state.pid) do
-      :ok -> {:ok, %Result{}, %{state | mssql: :idle}}
-      {:error, reason} -> {:disconnect, reason, state}
+      :ok ->
+        {:ok, %Result{}, %{state | mssql: :idle}}
+      {:error, reason} ->
+        {:disconnect, reason, state}
     end
   end
 
