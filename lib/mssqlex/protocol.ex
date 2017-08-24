@@ -191,23 +191,34 @@ defmodule Mssqlex.Protocol do
   end
 
   defp handle_savepoint(:begin, opts, state) do
-    if state.mssql == :autocommit do
-      {:error,
-       %Mssqlex.Error{message: "savepoint not allowed in autocommit mode"},
-       state}
-    else
-      handle_execute(
-        %Mssqlex.Query{name: "", statement: "SAVE TRANSACTION mssqlex_savepoint"},
-        [], opts, state)
+    case state.mssql do
+      :idle ->
+        handle_execute(%Mssqlex.Query{name: "", statement: "SAVE TRANSACTION mssqlex_savepoint"}, [], opts, state) # Because everything is a transaction with ODBC
+      :transaction ->
+        handle_execute(%Mssqlex.Query{name: "", statement: "SAVE TRANSACTION mssqlex_savepoint"}, [], opts, state)
+      :autocommit ->
+        {:error, %Mssqlex.Error{message: "savepoint not allowed in autocommit mode"}, state}
     end
   end
   defp handle_savepoint(:commit, _opts, state) do
-    {:ok, %Result{}, state}
+    case state.mssql do
+      :idle ->
+        {:ok, %Result{}, state}
+      :transaction ->
+        {:ok, %Result{}, state}
+      :autocommit ->
+        {:error, %Mssqlex.Error{message: "savepoint not allowed in autocommit mode"}, state}
+    end
   end
   defp handle_savepoint(:rollback, opts, state) do
-    handle_execute(
-      %Mssqlex.Query{name: "", statement: "ROLLBACK TRANSACTION mssqlex_savepoint"},
-      [], opts, state)
+    case state.mssql do
+      :idle ->
+        handle_execute(%Mssqlex.Query{name: "", statement: "ROLLBACK TRANSACTION mssqlex_savepoint"}, [], opts, state) # Because everything is a transaction with ODBC
+      :transaction ->
+        handle_execute(%Mssqlex.Query{name: "", statement: "ROLLBACK TRANSACTION mssqlex_savepoint"}, [], opts, state)
+      :autocommit ->
+        {:error, %Mssqlex.Error{message: "savepoint not allowed in autocommit mode"}, state}
+    end
   end
 
   @doc false
