@@ -30,7 +30,7 @@ defmodule Mssqlex.Mixfile do
   end
 
   defp deps do
-    [{:db_connection, "~> 1.1"},
+    [{:db_connection, "~> 1.1", github: "elixir-ecto/db_connection", ref: "f2619f720e1fd377a02aacbbeb98cabe23642331"},
      {:decimal, "~> 1.0"},
      {:ex_doc, "~> 0.15", only: :dev, runtime: false},
      {:excoveralls, "~> 0.6", only: :test},
