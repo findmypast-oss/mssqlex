@@ -17,7 +17,7 @@ defmodule Mssqlex do
 
     * `:odbc_driver` - The driver the adapter will use.
         * environment variable: `MSSQL_DVR`
-        * default value: {ODBC Driver 13 for SQL Server}
+        * default value: {ODBC Driver 17 for SQL Server}
     * `:hostname` - The server hostname.
         * environment variable: `MSSQL_HST`
         * default value: localhost
