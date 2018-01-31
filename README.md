@@ -28,7 +28,7 @@ by adding `mssqlex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:mssqlex, "~> 0.8.0"}]
+  [{:mssqlex, "~> 1.0.0"}]
 end
 ```
 
@@ -39,6 +39,7 @@ UID and password to be set in the `MSSQL_UID` and `MSSQL_PWD` environment
 variables, respectively.
 
 The easiest way to get an instance running is to use the SQL Server Docker image:
+
 ```sh
 export MSSQL_UID=sa
 export MSSQL_PWD='ThePa$$word'
