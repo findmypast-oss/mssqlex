@@ -17,10 +17,10 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get update && apt-get install -y --no-install-recommends apt-transport-https
 
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-&& curl https://packages.microsoft.com/config/debian/8/prod.list | tee -a /etc/apt/sources.list.d/mssql-release.list \
-&& apt-get update \
-&& ACCEPT_EULA=Y apt-get install msodbcsql -y \
-&& apt-get install unixodbc-dev -y
+    && curl https://packages.microsoft.com/config/debian/8/prod.list | tee -a /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install msodbcsql=17.0.1.1-1 -y \
+    && apt-get install unixodbc-dev -y
 
 # --- APP INSTALL ---
 
