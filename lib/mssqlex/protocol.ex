@@ -44,13 +44,17 @@ defmodule Mssqlex.Protocol do
     server_address = opts[:hostname] || System.get_env("MSSQL_HST") || "localhost"
     instance_name = opts[:instance_name] || System.get_env("MSSQL_IN")
     port = opts[:port] || System.get_env("MSSQL_PRT")
+    encrypt = opts[:encrypt] || System.get_env("MSSQL_ENCRYPT")
+    trust = opts[:trust_server_certificate] || System.get_env("MSSQL_TRUST_SERVER_CERT")
 
     conn_opts = [
       {"Driver", opts[:odbc_driver] || System.get_env("MSSQL_DVR") || "{ODBC Driver 17 for SQL Server}"},
       {"Server", build_server_address(server_address, instance_name, port)},
       {"Database", opts[:database] || System.get_env("MSSQL_DB")},
       {"UID", opts[:username] || System.get_env("MSSQL_UID")},
-      {"PWD", opts[:password] || System.get_env("MSSQL_PWD")}
+      {"PWD", opts[:password] || System.get_env("MSSQL_PWD")},
+      {"Encrypt", to_yesno(encrypt)},
+      {"TrustServerCertificate", to_yesno(trust)}
     ]
     conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
       acc <> "#{key}=#{value};" end)
@@ -74,6 +78,9 @@ defmodule Mssqlex.Protocol do
   defp build_server_address(server_address, instance_name, nil), do: "#{server_address}\\#{instance_name}"
   defp build_server_address(server_address, nil, port), do: "#{server_address},#{port}"
   defp build_server_address(server_address, instance_name, port), do: "#{server_address}\\#{instance_name},#{port}"
+
+  defp to_yesno(value) when value in ["yes", true], do: "yes"
+  defp to_yesno(value) when value in ["no", nil, false], do: "no"
 
   @doc false
   @spec disconnect(err :: Exception.t, state) :: :ok
