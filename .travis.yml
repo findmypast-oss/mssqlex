@@ -11,7 +11,7 @@ install:
   - docker-compose build mssqlex
 
 script:
-  - docker-compose run mssqlex
+  - docker-compose run mssqlex mix coveralls.travis
 
 after_script:
   - mix local.hex --force

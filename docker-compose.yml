@@ -20,4 +20,7 @@ services:
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     depends_on:
       - sql_server
-    command: ["./wait-for-it.sh", "sql_server:9204", "-s", "--", "mix", "coveralls.travis"]
+    volumes:
+      - .:/usr/src/app/
+    entrypoint: ./wait-for-it.sh sql_server:9204 --
+    command: mix test
