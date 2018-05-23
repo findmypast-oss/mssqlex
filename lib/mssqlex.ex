@@ -31,6 +31,10 @@ defmodule Mssqlex do
         * environment variable: `MSSQL_UID`
     * `:password` - User's password.
         * environment variable: `MSSQL_PWD`
+    * `:encrypt` - Specifies whether data should be encrypted before sending it over the network.
+        * environment variable: `MSSQL_ENCRYPT`
+    * `:trust_server_certificate` - When used with Encrypt, enables encryption using a self-signed server certificate.
+        * environment variable: `MSSQL_TRUST_SERVER_CERT`
 
   `Mssqlex` uses the `DBConnection` framework and supports all `DBConnection`
   options like `:idle`, `:after_connect` etc.
