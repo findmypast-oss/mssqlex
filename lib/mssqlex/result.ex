@@ -8,9 +8,10 @@ defmodule Mssqlex.Result do
   """
 
   @type t :: %__MODULE__{
-    columns:  [String.t] | nil,
-    rows:     [[term] | binary] | nil,
-    num_rows: integer | :undefined}
+          columns: [String.t()] | nil,
+          rows: [[term] | binary] | nil,
+          num_rows: integer | :undefined
+        }
 
-  defstruct [columns: nil, rows: nil, num_rows: :undefined]
+  defstruct columns: nil, rows: nil, num_rows: :undefined
 end

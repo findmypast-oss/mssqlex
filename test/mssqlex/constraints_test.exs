@@ -11,73 +11,124 @@ defmodule Mssqlex.ConstraintsTest do
 
   test "Unique constraint", %{pid: pid} do
     table_name = "constraints_test.dbo.uniq"
-    Mssqlex.query!(pid, """
-      CREATE TABLE #{table_name}
-      (id int CONSTRAINT id_unique UNIQUE)
-    """, [])
+
+    Mssqlex.query!(
+      pid,
+      """
+        CREATE TABLE #{table_name}
+        (id int CONSTRAINT id_unique UNIQUE)
+      """,
+      []
+    )
+
     Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
-    error = assert_raise Mssqlex.Error, fn ->
-      Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
-    end
+
+    error =
+      assert_raise Mssqlex.Error, fn ->
+        Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
+      end
+
     assert error.constraint_violations == [unique: "id_unique"]
   end
 
   test "Unique index", %{pid: pid} do
     table_name = "constraints_test.dbo.uniq_ix"
-    Mssqlex.query!(pid, """
-    CREATE TABLE #{table_name} (id int);
-    CREATE UNIQUE INDEX id_unique ON #{table_name} (id);
-    """, [])
+
+    Mssqlex.query!(
+      pid,
+      """
+      CREATE TABLE #{table_name} (id int);
+      CREATE UNIQUE INDEX id_unique ON #{table_name} (id);
+      """,
+      []
+    )
+
     Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
-    error = assert_raise Mssqlex.Error, fn ->
-      Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
-    end
+
+    error =
+      assert_raise Mssqlex.Error, fn ->
+        Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
+      end
+
     assert error.constraint_violations == [unique: "id_unique"]
   end
 
   test "Foreign Key constraint", %{pid: pid} do
     assoc_table_name = "constraints_test.dbo.assoc"
     table_name = "constraints_test.dbo.fk"
-    Mssqlex.query!(pid, """
-    CREATE TABLE #{assoc_table_name}
-    (id int CONSTRAINT id_pk PRIMARY KEY)
-    """, [])
-    Mssqlex.query!(pid, """
-    CREATE TABLE #{table_name}
-    (id int CONSTRAINT id_foreign FOREIGN KEY REFERENCES #{assoc_table_name})
-    """, [])
+
+    Mssqlex.query!(
+      pid,
+      """
+      CREATE TABLE #{assoc_table_name}
+      (id int CONSTRAINT id_pk PRIMARY KEY)
+      """,
+      []
+    )
+
+    Mssqlex.query!(
+      pid,
+      """
+      CREATE TABLE #{table_name}
+      (id int CONSTRAINT id_foreign FOREIGN KEY REFERENCES #{assoc_table_name})
+      """,
+      []
+    )
+
     Mssqlex.query!(pid, "INSERT INTO #{assoc_table_name} VALUES (?)", [42])
-    error = assert_raise Mssqlex.Error, fn ->
-      Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [12])
-    end
+
+    error =
+      assert_raise Mssqlex.Error, fn ->
+        Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [12])
+      end
+
     assert error.constraint_violations == [foreign_key: "id_foreign"]
   end
 
   test "Check constraint", %{pid: pid} do
     table_name = "constraints_test.dbo.chk"
-    Mssqlex.query!(pid, """
-    CREATE TABLE #{table_name}
-    (id int CONSTRAINT id_check CHECK (id = 1))
-    """, [])
-    error = assert_raise Mssqlex.Error, fn ->
-      Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
-    end
+
+    Mssqlex.query!(
+      pid,
+      """
+      CREATE TABLE #{table_name}
+      (id int CONSTRAINT id_check CHECK (id = 1))
+      """,
+      []
+    )
+
+    error =
+      assert_raise Mssqlex.Error, fn ->
+        Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
+      end
+
     assert error.constraint_violations == [check: "id_check"]
   end
 
   @tag skip: "Database doesn't support this"
   test "Multiple constraints", %{pid: pid} do
     table_name = "constraints_test.dbo.mult"
-    Mssqlex.query!(pid, """
-    CREATE TABLE #{table_name}
-    (id int CONSTRAINT id_unique UNIQUE,
-     foo int CONSTRAINT foo_check CHECK (foo = 3))
-    """, [])
-    Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?, ?)", [42, 3])
-    error = assert_raise Mssqlex.Error, fn ->
-      Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?, ?)", [42, 5])
-    end
-    assert error.constraint_violations == [unique: "id_unique", check: "foo_check"]
-  end
 
+    Mssqlex.query!(
+      pid,
+      """
+      CREATE TABLE #{table_name}
+      (id int CONSTRAINT id_unique UNIQUE,
+       foo int CONSTRAINT foo_check CHECK (foo = 3))
+      """,
+      []
+    )
+
+    Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?, ?)", [42, 3])
+
+    error =
+      assert_raise Mssqlex.Error, fn ->
+        Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?, ?)", [42, 5])
+      end
+
+    assert error.constraint_violations == [
+             unique: "id_unique",
+             check: "foo_check"
+           ]
+  end
 end

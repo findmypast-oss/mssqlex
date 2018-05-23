@@ -4,19 +4,21 @@ defmodule Mssqlex.Type do
   """
 
   @typedoc "Input param."
-  @type param :: bitstring()
-    | number()
-    | date()
-    | time()
-    | datetime()
-    | Decimal.t()
+  @type param ::
+          bitstring()
+          | number()
+          | date()
+          | time()
+          | datetime()
+          | Decimal.t()
 
   @typedoc "Output value."
-  @type return_value :: bitstring()
-    | integer()
-    | date()
-    | datetime()
-    | Decimal.t()
+  @type return_value ::
+          bitstring()
+          | integer()
+          | date()
+          | datetime()
+          | Decimal.t()
 
   @typedoc "Date as `{year, month, day}`"
   @type date :: {1..9_999, 1..12, 1..31}
@@ -30,65 +32,79 @@ defmodule Mssqlex.Type do
   @doc """
   Transforms input params into `:odbc` params.
   """
-  @spec encode(value :: param(), opts :: Keyword.t) ::
-    {:odbc.odbc_data_type(), [:odbc.value()]}
+  @spec encode(value :: param(), opts :: Keyword.t()) ::
+          {:odbc.odbc_data_type(), [:odbc.value()]}
   def encode(value, _) when is_boolean(value) do
     {:sql_bit, [value]}
-    end
+  end
 
   def encode({_year, _month, _day} = date, _) do
-    encoded = Date.from_erl!(date)
-    |> to_string
-    |> :unicode.characters_to_binary(:unicode, :latin1)
+    encoded =
+      Date.from_erl!(date)
+      |> to_string
+      |> :unicode.characters_to_binary(:unicode, :latin1)
+
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode({hour, minute, sec, usec}, _) do
     precision = if usec == 0, do: 0, else: 6
-    encoded = Time.from_erl!({hour, minute, sec}, {usec, precision})
-    |> to_string
-    |> :unicode.characters_to_binary(:unicode, :latin1)
+
+    encoded =
+      Time.from_erl!({hour, minute, sec}, {usec, precision})
+      |> to_string
+      |> :unicode.characters_to_binary(:unicode, :latin1)
+
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
     precision = if usec == 0, do: 0, else: 2
-    encoded = NaiveDateTime.from_erl!(
-      {{year, month, day}, {hour, minute, sec}}, {usec, precision})
-    |> to_string
-    |> :unicode.characters_to_binary(:unicode, :latin1)
+
+    encoded =
+      NaiveDateTime.from_erl!(
+        {{year, month, day}, {hour, minute, sec}},
+        {usec, precision}
+      )
+      |> to_string
+      |> :unicode.characters_to_binary(:unicode, :latin1)
+
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
-  def encode(value, _) when is_integer(value)
-  and (value > -1_000_000_000)
-  and (value < 1_000_000_000) do
+  def encode(value, _)
+      when is_integer(value) and value > -1_000_000_000 and
+             value < 1_000_000_000 do
     {:sql_integer, [value]}
   end
 
   def encode(value, _) when is_integer(value) do
-    encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    encoded =
+      value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_float(value) do
-    encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    encoded =
+      value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(%Decimal{} = value, _) do
-    encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    encoded =
+      value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_binary(value) do
     with utf16 when is_bitstring(utf16) <-
-      :unicode.characters_to_binary(value, :unicode, {:utf16, :little})
-    do
+           :unicode.characters_to_binary(value, :unicode, {:utf16, :little}) do
       {{:sql_wvarchar, byte_size(value)}, [utf16]}
     else
-      _ -> raise %Mssqlex.Error{
-        message: "failed to convert string to UTF16LE"}
+      _ -> raise %Mssqlex.Error{message: "failed to convert string to UTF16LE"}
     end
   end
 
@@ -98,13 +114,14 @@ defmodule Mssqlex.Type do
 
   def encode(value, _) do
     raise %Mssqlex.Error{
-      message: "could not parse param #{inspect value} of unrecognised type."}
+      message: "could not parse param #{inspect(value)} of unrecognised type."
+    }
   end
 
   @doc """
   Transforms `:odbc` return values to Elixir representations.
   """
-  @spec decode(:odbc.value(), opts :: Keyword.t) :: return_value()
+  @spec decode(:odbc.value(), opts :: Keyword.t()) :: return_value()
 
   def decode(value, _) when is_float(value) do
     Decimal.new(value)

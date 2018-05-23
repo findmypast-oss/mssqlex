@@ -23,10 +23,9 @@ defmodule Mssqlex.ODBC do
   your ODBC driver.
   `opts` will be passed verbatim to `:odbc.connect/2`.
   """
-  @spec start_link(binary(), Keyword.t) :: {:ok, pid()}
+  @spec start_link(binary(), Keyword.t()) :: {:ok, pid()}
   def start_link(conn_str, opts) do
-    GenServer.start_link(__MODULE__,
-      [{:conn_str, to_charlist(conn_str)} | opts])
+    GenServer.start_link(__MODULE__, [{:conn_str, to_charlist(conn_str)} | opts])
   end
 
   @doc """
@@ -41,14 +40,18 @@ defmodule Mssqlex.ODBC do
   `params` are the parameters to send with the SQL query
   `opts` are options to be passed on to `:odbc`
   """
-  @spec query(pid(), iodata(), Keyword.t, Keyword.t) :: {:selected, [binary()], [tuple()]
-                                                        | {:updated, non_neg_integer()}}
-                                                        | {:error, Exception.t}
+  @spec query(pid(), iodata(), Keyword.t(), Keyword.t()) ::
+          {:selected, [binary()],
+           [tuple()]
+           | {:updated, non_neg_integer()}}
+          | {:error, Exception.t()}
   def query(pid, statement, params, opts) do
     if Process.alive?(pid) do
-      GenServer.call(pid,
+      GenServer.call(
+        pid,
         {:query, %{statement: IO.iodata_to_binary(statement), params: params}},
-        Keyword.get(opts, :timeout, 5000))
+        Keyword.get(opts, :timeout, 5000)
+      )
     else
       {:error, %Mssqlex.Error{message: :no_connection}}
     end
@@ -62,7 +65,7 @@ defmodule Mssqlex.ODBC do
 
   `pid` is the `:odbc` process id
   """
-  @spec commit(pid()) :: :ok | {:error, Exception.t}
+  @spec commit(pid()) :: :ok | {:error, Exception.t()}
   def commit(pid) do
     if Process.alive?(pid) do
       GenServer.call(pid, :commit)
@@ -76,7 +79,7 @@ defmodule Mssqlex.ODBC do
 
   `pid` is the `:odbc` process id
   """
-  @spec rollback(pid()) :: :ok | {:error, Exception.t}
+  @spec rollback(pid()) :: :ok | {:error, Exception.t()}
   def rollback(pid) do
     if Process.alive?(pid) do
       GenServer.call(pid, :rollback)
@@ -104,13 +107,14 @@ defmodule Mssqlex.ODBC do
 
   @doc false
   def init(opts) do
-    connect_opts = opts
-    |> Keyword.delete_first(:conn_str)
-    |> Keyword.put_new(:auto_commit, :off)
-    |> Keyword.put_new(:timeout, 5000)
-    |> Keyword.put_new(:extended_errors, :on)
-    |> Keyword.put_new(:tuple_row, :off)
-    |> Keyword.put_new(:binary_strings, :on)
+    connect_opts =
+      opts
+      |> Keyword.delete_first(:conn_str)
+      |> Keyword.put_new(:auto_commit, :off)
+      |> Keyword.put_new(:timeout, 5000)
+      |> Keyword.put_new(:extended_errors, :on)
+      |> Keyword.put_new(:tuple_row, :off)
+      |> Keyword.put_new(:binary_strings, :on)
 
     case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
       {:ok, pid} -> {:ok, pid}
@@ -119,8 +123,11 @@ defmodule Mssqlex.ODBC do
   end
 
   @doc false
-  def handle_call({:query, %{statement: statement, params: params}},
-    _from, state) do
+  def handle_call(
+        {:query, %{statement: statement, params: params}},
+        _from,
+        state
+      ) do
     {:reply,
      handle_errors(:odbc.param_query(state, to_charlist(statement), params)),
      state}

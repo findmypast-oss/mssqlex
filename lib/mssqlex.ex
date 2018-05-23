@@ -45,7 +45,7 @@ defmodule Mssqlex do
       iex> {:ok, pid} = Mssqlex.start_link(database: "mr_microsoft")
       {:ok, #PID<0.70.0>}
   """
-  @spec start_link(Keyword.t) :: {:ok, pid}
+  @spec start_link(Keyword.t()) :: {:ok, pid}
   def start_link(opts) do
     DBConnection.start_link(Mssqlex.Protocol, opts)
   end
@@ -101,11 +101,15 @@ defmodule Mssqlex do
       supported due to adapter limitations. Select statements for columns
       of these types must convert them to supported types (e.g. varchar).
   """
-  @spec query(pid(), binary(), [Type.param()], Keyword.t) ::
-    {:ok, iodata(), Mssqlex.Result.t}
+  @spec query(pid(), binary(), [Type.param()], Keyword.t()) ::
+          {:ok, iodata(), Mssqlex.Result.t()}
   def query(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute(
-      conn, %Query{name: "", statement: statement}, params, opts)
+      conn,
+      %Query{name: "", statement: statement},
+      params,
+      opts
+    )
   end
 
   @doc """
@@ -113,10 +117,14 @@ defmodule Mssqlex do
 
   Raises an error on failure. See `query/4` for details.
   """
-  @spec query!(pid(), binary(), [Type.param()], Keyword.t) ::
-    {iodata(), Mssqlex.Result.t}
+  @spec query!(pid(), binary(), [Type.param()], Keyword.t()) ::
+          {iodata(), Mssqlex.Result.t()}
   def query!(conn, statement, params, opts \\ []) do
     DBConnection.prepare_execute!(
-      conn, %Query{name: "", statement: statement}, params, opts)
+      conn,
+      %Query{name: "", statement: statement},
+      params,
+      opts
+    )
   end
 end

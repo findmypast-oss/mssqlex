@@ -5,7 +5,8 @@ defmodule Mssqlex.Mixfile do
     [
       app: :mssqlex,
       version: "1.1.0",
-      description: "Adapter to Microsoft SQL Server. Using DBConnection and ODBC.",
+      description:
+        "Adapter to Microsoft SQL Server. Using DBConnection and ODBC.",
       elixir: "~> 1.6",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
@@ -15,7 +16,11 @@ defmodule Mssqlex.Mixfile do
 
       # Testing
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: ["test.local": :test, coveralls: :test, "coveralls.travis": :test],
+      preferred_cli_env: [
+        "test.local": :test,
+        coveralls: :test,
+        "coveralls.travis": :test
+      ],
 
       # Docs
       name: "Mssqlex",
