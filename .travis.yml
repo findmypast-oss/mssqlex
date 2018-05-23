@@ -11,6 +11,7 @@ install:
   - docker-compose build mssqlex
 
 script:
+  - docker-compose run mssqlex mix compile --warnings-as-errors
   - docker-compose run mssqlex mix coveralls.travis
 
 after_script:
