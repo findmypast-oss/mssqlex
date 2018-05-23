@@ -12,6 +12,7 @@ install:
 
 script:
   - docker-compose run mssqlex mix compile --warnings-as-errors
+  - ocker-compose run mssqlex mix format --check-formatted
   - docker-compose run mssqlex mix coveralls.travis
 
 after_script:
