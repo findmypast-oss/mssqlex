@@ -28,7 +28,7 @@ RUN mix local.hex --force && \
 
 COPY . /usr/src/app
 WORKDIR /usr/src/app
-RUN mix do deps.get
+RUN mix do deps.get, deps.compile
 
 # --- Be able to run wait for it script ---
 
