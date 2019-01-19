@@ -35,7 +35,7 @@ defmodule Mssqlex.Mixfile do
 
   defp deps do
     [
-      {:db_connection, "~> 1.1"},
+      {:db_connection, "~> 2.0"},
       {:decimal, "~> 1.6"},
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
       {:excoveralls, "~> 0.6", only: :test},

@@ -242,25 +242,33 @@ defmodule Mssqlex.Protocol do
     {:ok, query, state}
   end
 
+  defp strip_query_from_tuple(tuple) do
+      case tuple do
+        {status, message, new_state} -> {status, message, new_state}
+        {status, _query, message, new_state} -> {status, message, new_state}
+      end
+  end
+
   @doc false
   @spec handle_execute(query, params, opts :: Keyword.t(), state) ::
-          {:ok, result, state}
+          {:ok, query, result, state}
           | {:error | :disconnect, Exception.t(), state}
   def handle_execute(query, params, opts, state) do
-    {status, message, new_state} = do_query(query, params, opts, state)
+    {status, message, new_state} =
+      do_query(query, params, opts, state)
 
     case new_state.mssql do
       :idle ->
         with {:ok, _, post_commit_state} <- handle_commit(opts, new_state) do
-          {status, message, post_commit_state}
+          {status, query, message, post_commit_state}
         end
 
       :transaction ->
-        {status, message, new_state}
+        {status, query, message, new_state}
 
       :auto_commit ->
         with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state) do
-          {status, message, post_connect_state}
+          {status, query, message, post_connect_state}
         end
     end
   end
@@ -292,6 +300,7 @@ defmodule Mssqlex.Protocol do
       {:updated, num_rows} ->
         {:ok, %Result{num_rows: num_rows}, state}
     end
+    |> strip_query_from_tuple()
   end
 
   defp switch_auto_commit(new_value, state) do
@@ -316,32 +325,31 @@ defmodule Mssqlex.Protocol do
     end
   end
 
-  # @spec handle_declare(query, params, opts :: Keyword.t, state) ::
-  #   {:ok, cursor, state} |
-  #   {:error | :disconnect, Exception.t, state}
-  # def handle_declare(_query, _params, _opts, state) do
-  #   {:error, "not implemented", state}
-  # end
-  #
-  # @spec handle_first(query, cursor, opts :: Keyword.t, state) ::
-  #   {:ok | :deallocate, result, state} |
-  #   {:error | :disconnect, Exception.t, state}
-  # def handle_first(_query, _cursor, _opts, state) do
-  #   {:error, "not implemented", state}
-  # end
-  #
-  # @spec handle_next(query, cursor, opts :: Keyword.t, state) ::
-  #   {:ok | :deallocate, result, state} |
-  #   {:error | :disconnect, Exception.t, state}
-  # def handle_next(_query, _cursor, _opts, state) do
-  #   {:error, "not implemented", state}
-  # end
-  #
-  # @spec handle_deallocate(query, cursor, opts :: Keyword.t, state) ::
-  #   {:ok, result, state} |
-  #   {:error | :disconnect, Exception.t, state}
-  # def handle_deallocate(_query, _cursor, _opts, state) do
-  #   {:error, "not implemented", state}
-  # end
-  #
+  @spec handle_declare(query, params, opts :: Keyword.t, state) ::
+    {:ok, cursor, state} |
+    {:error | :disconnect, Exception.t, state}
+  def handle_declare(_query, _params, _opts, state) do
+    {:error, "not implemented", state}
+  end
+
+  @spec handle_first(query, cursor, opts :: Keyword.t, state) ::
+    {:ok | :deallocate, result, state} |
+    {:error | :disconnect, Exception.t, state}
+  def handle_first(_query, _cursor, _opts, state) do
+    {:error, "not implemented", state}
+  end
+
+  @spec handle_next(query, cursor, opts :: Keyword.t, state) ::
+    {:ok | :deallocate, result, state} |
+    {:error | :disconnect, Exception.t, state}
+  def handle_next(_query, _cursor, _opts, state) do
+    {:error, "not implemented", state}
+  end
+
+  @spec handle_deallocate(query, cursor, opts :: Keyword.t, state) ::
+    {:ok, result, state} |
+    {:error | :disconnect, Exception.t, state}
+  def handle_deallocate(_query, _cursor, _opts, state) do
+    {:error, "not implemented", state}
+  end
 end
