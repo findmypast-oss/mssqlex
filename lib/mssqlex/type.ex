@@ -124,7 +124,7 @@ defmodule Mssqlex.Type do
   @spec decode(:odbc.value(), opts :: Keyword.t()) :: return_value()
 
   def decode(value, _) when is_float(value) do
-    Decimal.new(value)
+    Decimal.from_float(value)
   end
 
   def decode(value, opts) when is_binary(value) do
