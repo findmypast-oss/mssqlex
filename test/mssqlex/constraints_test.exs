@@ -24,11 +24,12 @@ defmodule Mssqlex.ConstraintsTest do
     Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
 
     error =
-      assert_raise Mssqlex.Error, fn ->
+      assert_raise DBConnection.ConnectionError, fn ->
         Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
       end
 
-    assert error.constraint_violations == [unique: "id_unique"]
+    error = parse_error(error)
+    assert error == inspect [unique: "id_unique"]
   end
 
   test "Unique index", %{pid: pid} do
@@ -46,11 +47,12 @@ defmodule Mssqlex.ConstraintsTest do
     Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
 
     error =
-      assert_raise Mssqlex.Error, fn ->
+      assert_raise DBConnection.ConnectionError, fn ->
         Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
       end
 
-    assert error.constraint_violations == [unique: "id_unique"]
+    error = parse_error(error)
+    assert error == inspect [unique: "id_unique"]
   end
 
   test "Foreign Key constraint", %{pid: pid} do
@@ -78,11 +80,12 @@ defmodule Mssqlex.ConstraintsTest do
     Mssqlex.query!(pid, "INSERT INTO #{assoc_table_name} VALUES (?)", [42])
 
     error =
-      assert_raise Mssqlex.Error, fn ->
+      assert_raise DBConnection.ConnectionError, fn ->
         Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [12])
       end
 
-    assert error.constraint_violations == [foreign_key: "id_foreign"]
+    error = parse_error(error)
+    assert error == inspect [foreign_key: "id_foreign"]
   end
 
   test "Check constraint", %{pid: pid} do
@@ -98,11 +101,12 @@ defmodule Mssqlex.ConstraintsTest do
     )
 
     error =
-      assert_raise Mssqlex.Error, fn ->
+      assert_raise DBConnection.ConnectionError, fn ->
         Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?)", [42])
       end
 
-    assert error.constraint_violations == [check: "id_check"]
+    error = parse_error(error)
+    assert error == inspect [check: "id_check"]
   end
 
   @tag skip: "Database doesn't support this"
@@ -122,13 +126,25 @@ defmodule Mssqlex.ConstraintsTest do
     Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?, ?)", [42, 3])
 
     error =
-      assert_raise Mssqlex.Error, fn ->
+      assert_raise DBConnection.ConnectionError, fn ->
         Mssqlex.query!(pid, "INSERT INTO #{table_name} VALUES (?, ?)", [42, 5])
       end
 
-    assert error.constraint_violations == [
+    error = parse_error(error)
+    assert error == inspect [
              unique: "id_unique",
              check: "foo_check"
            ]
+  end
+
+  defp parse_error(error) do
+    error =
+      error.message
+      |> String.trim_leading("bad return value: ")
+      |> String.split("%Mssqlex.Error{constraint_violations: ")
+      |> List.last()
+      |> String.split("]")
+      |> List.first()
+    error <> "]"
   end
 end
