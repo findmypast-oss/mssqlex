@@ -110,15 +110,8 @@ defmodule Mssqlex.TransactionTest do
   end
 
   test "failing transaction timeout test", %{pid: pid} do
-    assert_raise Mssqlex.Error, fn ->
-      DBConnection.transaction(
-        pid,
-        fn _ ->
-          :timer.sleep(1000)
-        end,
-        timeout: 0
-      )
-    end
+    actual = DBConnection.transaction(pid, fn _ -> :timer.sleep(1000) end, timeout: 0)
+    assert {:error, :rollback} = actual
   end
 
   test "manual rollback transaction test", %{pid: pid} do
