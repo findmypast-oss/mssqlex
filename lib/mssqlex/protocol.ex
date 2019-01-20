@@ -37,11 +37,10 @@ defmodule Mssqlex.Protocol do
   @type params :: [{:odbc.odbc_data_type(), :odbc.value()}]
   @type result :: Result.t()
   @type cursor :: any
+  @type status :: :idle | :transaction | :error
 
   @doc false
-  @spec connect(opts :: Keyword.t()) ::
-          {:ok, state}
-          | {:error, Exception.t()}
+  @spec connect(opts :: Keyword.t()) :: {:ok, state} | {:error, Exception.t()}
   def connect(opts) do
     server_address =
       opts[:hostname] || System.get_env("MSSQL_HST") || "localhost"
@@ -139,6 +138,7 @@ defmodule Mssqlex.Protocol do
   @doc false
   @spec handle_begin(opts :: Keyword.t(), state) ::
           {:ok, result, state}
+          | {status, new_state :: any()}
           | {:error | :disconnect, Exception.t(), state}
   def handle_begin(opts, state) do
     case Keyword.get(opts, :mode, :transaction) do
@@ -241,26 +241,32 @@ defmodule Mssqlex.Protocol do
     {:ok, query, state}
   end
 
+  defp execute_return(status, query, message, state) do
+    case status do
+      :ok -> {status, query, message, state}
+      _ -> {status, message, state}
+    end
+  end
+
   @doc false
   @spec handle_execute(query, params, opts :: Keyword.t(), state) ::
     {:ok, query(), result(), new_state :: any()}
     | {:error | :disconnect, Exception.t(), new_state :: any()}
   def handle_execute(query, params, opts, state) do
-    {status, message, new_state} =
-      do_query(query, params, opts, state)
+    {status, message, new_state} = do_query(query, params, opts, state)
 
     case new_state.mssql do
       :idle ->
         with {:ok, _, post_commit_state} <- handle_commit(opts, new_state) do
-          {status, query, message, post_commit_state}
+          execute_return(status, query, message, post_commit_state)
         end
 
       :transaction ->
-        {status, query, message, new_state}
+        execute_return(status, query, message, new_state)
 
       :auto_commit ->
         with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state) do
-          {status, query, message, post_connect_state}
+          execute_return(status, query, message, post_connect_state)
         end
     end
   end
@@ -315,7 +321,8 @@ defmodule Mssqlex.Protocol do
   end
 
   @spec ping(state :: any()) ::
-    {:ok, new_state :: any()} | {:disconnect, Exception.t(), new_state :: any()}
+          {:ok, new_state :: any()}
+          | {:disconnect, Exception.t(), new_state :: any()}
   def ping(state) do
     query = %Mssqlex.Query{name: "ping", statement: "SELECT 1"}
 
@@ -327,30 +334,30 @@ defmodule Mssqlex.Protocol do
   end
 
   # NOT IMPLEMENTED
-  @spec handle_declare(query, params, opts :: Keyword.t, state) ::
-    {:ok, cursor, state} |
-    {:error | :disconnect, Exception.t, state}
+  @spec handle_declare(query, params, opts :: Keyword.t(), state) ::
+          {:ok, cursor, state}
+          | {:error | :disconnect, Exception.t(), state}
   def handle_declare(_query, _params, _opts, state) do
     {:error, "not implemented", state}
   end
 
-  @spec handle_first(query, cursor, opts :: Keyword.t, state) ::
-    {:ok | :deallocate, result, state} |
-    {:error | :disconnect, Exception.t, state}
+  @spec handle_first(query, cursor, opts :: Keyword.t(), state) ::
+          {:ok | :deallocate, result, state}
+          | {:error | :disconnect, Exception.t(), state}
   def handle_first(_query, _cursor, _opts, state) do
     {:error, "not implemented", state}
   end
 
-  @spec handle_next(query, cursor, opts :: Keyword.t, state) ::
-    {:ok | :deallocate, result, state} |
-    {:error | :disconnect, Exception.t, state}
+  @spec handle_next(query, cursor, opts :: Keyword.t(), state) ::
+          {:ok | :deallocate, result, state}
+          | {:error | :disconnect, Exception.t(), state}
   def handle_next(_query, _cursor, _opts, state) do
     {:error, "not implemented", state}
   end
 
-  @spec handle_deallocate(query, cursor, opts :: Keyword.t, state) ::
-    {:ok, result, state} |
-    {:error | :disconnect, Exception.t, state}
+  @spec handle_deallocate(query, cursor, opts :: Keyword.t(), state) ::
+          {:ok, result, state}
+          | {:error | :disconnect, Exception.t(), state}
   def handle_deallocate(_query, _cursor, _opts, state) do
     {:error, "not implemented", state}
   end
