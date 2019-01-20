@@ -91,8 +91,6 @@ defmodule Mssqlex.Protocol do
   end
 
   @spec build_server_address(String.t(), String.t(), String.t()) :: String.t()
-  defp build_server_address(server_address, instance_name, port)
-
   defp build_server_address(server_address, nil, nil), do: server_address
 
   defp build_server_address(server_address, instance_name, nil),
@@ -162,8 +160,9 @@ defmodule Mssqlex.Protocol do
 
   @doc false
   @spec handle_rollback(opts :: Keyword.t(), state) ::
-          {:ok, result, state}
-          | {:error | :disconnect, Exception.t(), state}
+    {:ok, result(), new_state :: any()}
+    | {:idle, new_state :: any()}
+    | {:disconnect, Exception.t(), new_state :: any()}
   def handle_rollback(opts, state) do
     case Keyword.get(opts, :mode, :transaction) do
       :transaction -> handle_transaction(:rollback, opts, state)
@@ -242,17 +241,10 @@ defmodule Mssqlex.Protocol do
     {:ok, query, state}
   end
 
-  defp strip_query_from_tuple(tuple) do
-      case tuple do
-        {status, message, new_state} -> {status, message, new_state}
-        {status, _query, message, new_state} -> {status, message, new_state}
-      end
-  end
-
   @doc false
   @spec handle_execute(query, params, opts :: Keyword.t(), state) ::
-          {:ok, query, result, state}
-          | {:error | :disconnect, Exception.t(), state}
+    {:ok, query(), result(), new_state :: any()}
+    | {:error | :disconnect, Exception.t(), new_state :: any()}
   def handle_execute(query, params, opts, state) do
     {status, message, new_state} =
       do_query(query, params, opts, state)
@@ -303,18 +295,27 @@ defmodule Mssqlex.Protocol do
     |> strip_query_from_tuple()
   end
 
+  defp strip_query_from_tuple(tuple) do
+    case tuple do
+      {status, message, new_state} -> {status, message, new_state}
+      {status, _query, message, new_state} -> {status, message, new_state}
+    end
+  end
+
   defp switch_auto_commit(new_value, state) do
     reconnect(Keyword.put(state.conn_opts, :auto_commit, new_value), state)
   end
 
   @doc false
   @spec handle_close(query, opts :: Keyword.t(), state) ::
-          {:ok, result, state}
-          | {:error | :disconnect, Exception.t(), state}
+    {:ok, result, state}
+    | {:error | :disconnect, Exception.t(), state}
   def handle_close(_query, _opts, state) do
     {:ok, %Result{}, state}
   end
 
+  @spec ping(state :: any()) ::
+    {:ok, new_state :: any()} | {:disconnect, Exception.t(), new_state :: any()}
   def ping(state) do
     query = %Mssqlex.Query{name: "ping", statement: "SELECT 1"}
 
@@ -325,6 +326,7 @@ defmodule Mssqlex.Protocol do
     end
   end
 
+  # NOT IMPLEMENTED
   @spec handle_declare(query, params, opts :: Keyword.t, state) ::
     {:ok, cursor, state} |
     {:error | :disconnect, Exception.t, state}
@@ -350,6 +352,20 @@ defmodule Mssqlex.Protocol do
     {:ok, result, state} |
     {:error | :disconnect, Exception.t, state}
   def handle_deallocate(_query, _cursor, _opts, state) do
+    {:error, "not implemented", state}
+  end
+
+  @spec handle_fetch(query(), cursor(), opts :: Keyword.t(), state :: any()) ::
+    {:cont | :halt, result(), new_state :: any()}
+    | {:error | :disconnect, Exception.t(), new_state :: any()}
+  def handle_fetch(_query, _cursor, _opts, state) do
+    {:error, "not implemented", state}
+  end
+
+  @spec handle_status(opts :: Keyword.t(), state :: any()) ::
+  {:idle | :transaction | :error, new_state :: any()}
+  | {:disconnect, Exception.t(), new_state :: any()}
+  def handle_status(_opts, state) do
     {:error, "not implemented", state}
   end
 end
