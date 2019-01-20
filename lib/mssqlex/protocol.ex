@@ -160,9 +160,9 @@ defmodule Mssqlex.Protocol do
 
   @doc false
   @spec handle_rollback(opts :: Keyword.t(), state) ::
-    {:ok, result(), new_state :: any()}
-    | {:idle, new_state :: any()}
-    | {:disconnect, Exception.t(), new_state :: any()}
+          {:ok, result(), new_state :: any()}
+          | {:idle, new_state :: any()}
+          | {:disconnect, Exception.t(), new_state :: any()}
   def handle_rollback(opts, state) do
     case Keyword.get(opts, :mode, :transaction) do
       :transaction -> handle_transaction(:rollback, opts, state)
@@ -241,7 +241,11 @@ defmodule Mssqlex.Protocol do
     {:ok, query, state}
   end
 
-  defp execute_return(status, query, message, state) do
+  defp execute_return(status, _query, message, state, [mode: _savepoint]) do
+    {status, message, state}
+  end
+
+  defp execute_return(status, query, message, state, _opts) do
     case status do
       :ok -> {status, query, message, state}
       _ -> {status, message, state}
@@ -250,23 +254,23 @@ defmodule Mssqlex.Protocol do
 
   @doc false
   @spec handle_execute(query, params, opts :: Keyword.t(), state) ::
-    {:ok, query(), result(), new_state :: any()}
-    | {:error | :disconnect, Exception.t(), new_state :: any()}
+          {:ok, query(), result(), new_state :: any()}
+          | {:error | :disconnect, Exception.t(), new_state :: any()}
   def handle_execute(query, params, opts, state) do
     {status, message, new_state} = do_query(query, params, opts, state)
 
     case new_state.mssql do
       :idle ->
         with {:ok, _, post_commit_state} <- handle_commit(opts, new_state) do
-          execute_return(status, query, message, post_commit_state)
+          execute_return(status, query, message, post_commit_state, opts)
         end
 
       :transaction ->
-        execute_return(status, query, message, new_state)
+        execute_return(status, query, message, new_state, opts)
 
       :auto_commit ->
         with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state) do
-          execute_return(status, query, message, post_connect_state)
+          execute_return(status, query, message, post_connect_state, opts)
         end
     end
   end
@@ -314,8 +318,8 @@ defmodule Mssqlex.Protocol do
 
   @doc false
   @spec handle_close(query, opts :: Keyword.t(), state) ::
-    {:ok, result, state}
-    | {:error | :disconnect, Exception.t(), state}
+          {:ok, result, state}
+          | {:error | :disconnect, Exception.t(), state}
   def handle_close(_query, _opts, state) do
     {:ok, %Result{}, state}
   end
@@ -363,15 +367,15 @@ defmodule Mssqlex.Protocol do
   end
 
   @spec handle_fetch(query(), cursor(), opts :: Keyword.t(), state :: any()) ::
-    {:cont | :halt, result(), new_state :: any()}
-    | {:error | :disconnect, Exception.t(), new_state :: any()}
+          {:cont | :halt, result(), new_state :: any()}
+          | {:error | :disconnect, Exception.t(), new_state :: any()}
   def handle_fetch(_query, _cursor, _opts, state) do
     {:error, "not implemented", state}
   end
 
   @spec handle_status(opts :: Keyword.t(), state :: any()) ::
-  {:idle | :transaction | :error, new_state :: any()}
-  | {:disconnect, Exception.t(), new_state :: any()}
+          {:idle | :transaction | :error, new_state :: any()}
+          | {:disconnect, Exception.t(), new_state :: any()}
   def handle_status(_opts, state) do
     {:error, "not implemented", state}
   end
