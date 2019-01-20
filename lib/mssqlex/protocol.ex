@@ -241,7 +241,7 @@ defmodule Mssqlex.Protocol do
     {:ok, query, state}
   end
 
-  defp execute_return(status, _query, message, state, [mode: _savepoint]) do
+  defp execute_return(status, _query, message, state, mode: _savepoint) do
     {status, message, state}
   end
 
