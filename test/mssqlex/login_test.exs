@@ -28,8 +28,8 @@ defmodule Mssqlex.LoginTest do
     Process.flag(:trap_exit, true)
 
     assert {:ok, pid} = Mssqlex.start_link(password: "badpass")
+    exited = catch_exit(Mssqlex.query(pid, "SELECT 'test'", []))
 
-    assert_receive {:EXIT, ^pid,
-                    %Mssqlex.Error{odbc_code: :invalid_authorization}}
+    assert {:killed, {DBConnection.Holder, :checkout, [pid, []]}} == exited
   end
 end
