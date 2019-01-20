@@ -1,4 +1,4 @@
-FROM elixir:1.6.5-slim
+FROM elixir:1.8.0-slim
 
 # --- Set Locale to en_US.UTF-8 ---
 
