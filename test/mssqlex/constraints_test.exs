@@ -29,7 +29,7 @@ defmodule Mssqlex.ConstraintsTest do
       end
 
     error = parse_error(error)
-    assert error == inspect [unique: "id_unique"]
+    assert error == inspect(unique: "id_unique")
   end
 
   test "Unique index", %{pid: pid} do
@@ -52,7 +52,7 @@ defmodule Mssqlex.ConstraintsTest do
       end
 
     error = parse_error(error)
-    assert error == inspect [unique: "id_unique"]
+    assert error == inspect(unique: "id_unique")
   end
 
   test "Foreign Key constraint", %{pid: pid} do
@@ -85,7 +85,7 @@ defmodule Mssqlex.ConstraintsTest do
       end
 
     error = parse_error(error)
-    assert error == inspect [foreign_key: "id_foreign"]
+    assert error == inspect(foreign_key: "id_foreign")
   end
 
   test "Check constraint", %{pid: pid} do
@@ -106,7 +106,7 @@ defmodule Mssqlex.ConstraintsTest do
       end
 
     error = parse_error(error)
-    assert error == inspect [check: "id_check"]
+    assert error == inspect(check: "id_check")
   end
 
   @tag skip: "Database doesn't support this"
@@ -131,10 +131,12 @@ defmodule Mssqlex.ConstraintsTest do
       end
 
     error = parse_error(error)
-    assert error == inspect [
-             unique: "id_unique",
-             check: "foo_check"
-           ]
+
+    assert error ==
+             inspect(
+               unique: "id_unique",
+               check: "foo_check"
+             )
   end
 
   defp parse_error(error) do
@@ -145,6 +147,7 @@ defmodule Mssqlex.ConstraintsTest do
       |> List.last()
       |> String.split("]")
       |> List.first()
+
     error <> "]"
   end
 end
