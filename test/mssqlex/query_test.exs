@@ -6,27 +6,27 @@ defmodule Mssqlex.QueryTest do
   setup_all do
     {:ok, pid} = Mssqlex.start_link([])
     Mssqlex.query!(pid, "DROP DATABASE IF EXISTS query_test;", [])
-    {:ok, _, _} = Mssqlex.query(pid, "CREATE DATABASE query_test;", [])
+    {:ok, _} = Mssqlex.query(pid, "CREATE DATABASE query_test;", [])
 
     {:ok, [pid: pid]}
   end
 
   test "simple select", %{pid: pid} do
-    assert {:ok, _, %Result{}} =
+    assert {:ok, %Result{}} =
              Mssqlex.query(
                pid,
                "CREATE TABLE query_test.dbo.simple_select (name varchar(50));",
                []
              )
 
-    assert {:ok, _, %Result{num_rows: 1}} =
+    assert {:ok, %Result{num_rows: 1}} =
              Mssqlex.query(
                pid,
                ["INSERT INTO query_test.dbo.simple_select VALUES ('Steven');"],
                []
              )
 
-    assert {:ok, _, %Result{columns: ["name"], num_rows: 1, rows: [["Steven"]]}} =
+    assert {:ok, %Result{columns: ["name"], num_rows: 1, rows: [["Steven"]]}} =
              Mssqlex.query(
                pid,
                "SELECT * FROM query_test.dbo.simple_select;",
@@ -35,7 +35,7 @@ defmodule Mssqlex.QueryTest do
   end
 
   test "parametrized queries", %{pid: pid} do
-    assert {:ok, _, %Result{}} =
+    assert {:ok, %Result{}} =
              Mssqlex.query(
                pid,
                "CREATE TABLE query_test.dbo.parametrized_query" <>
@@ -43,7 +43,7 @@ defmodule Mssqlex.QueryTest do
                []
              )
 
-    assert {:ok, _, %Result{num_rows: 1}} =
+    assert {:ok, %Result{num_rows: 1}} =
              Mssqlex.query(
                pid,
                [
@@ -52,7 +52,7 @@ defmodule Mssqlex.QueryTest do
                [1, "Jae", "2017-01-01 12:01:01.3450000"]
              )
 
-    assert {:ok, _,
+    assert {:ok,
             %Result{
               columns: ["id", "name", "joined"],
               num_rows: 1,
@@ -66,28 +66,28 @@ defmodule Mssqlex.QueryTest do
   end
 
   test "select where in", %{pid: pid} do
-    assert {:ok, _, %Result{}} =
+    assert {:ok, %Result{}} =
              Mssqlex.query(
                pid,
                "CREATE TABLE query_test.dbo.select_where_in (name varchar(50), age int);",
                []
              )
 
-    assert {:ok, _, %Result{num_rows: 1}} =
+    assert {:ok, %Result{num_rows: 1}} =
              Mssqlex.query(
                pid,
                ["INSERT INTO query_test.dbo.select_where_in VALUES (?, ?);"],
                ["Dexter", 34]
              )
 
-    assert {:ok, _, %Result{num_rows: 1}} =
+    assert {:ok, %Result{num_rows: 1}} =
              Mssqlex.query(
                pid,
                ["INSERT INTO query_test.dbo.select_where_in VALUES (?, ?);"],
                ["Malcolm", 41]
              )
 
-    assert {:ok, _,
+    assert {:ok,
             %Result{
               columns: ["name", "age"],
               num_rows: 2,
@@ -99,7 +99,7 @@ defmodule Mssqlex.QueryTest do
                ["Dexter", "Malcolm"]
              )
 
-    assert {:ok, _,
+    assert {:ok,
             %Result{
               columns: ["name", "age"],
               num_rows: 1,
@@ -111,7 +111,7 @@ defmodule Mssqlex.QueryTest do
                ["Dexter", "Malcolm", 41]
              )
 
-    assert {:ok, _,
+    assert {:ok,
             %Result{
               columns: ["name", "age"],
               num_rows: 1,

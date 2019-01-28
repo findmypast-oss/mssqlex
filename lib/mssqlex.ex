@@ -9,6 +9,17 @@ defmodule Mssqlex do
 
   alias Mssqlex.Query
   alias Mssqlex.Type
+  alias Mssqlex.Result
+  alias Mssqlex.Error
+  alias Mssqlex.Protocol
+
+  @typedoc """
+    A connection process name, pid or reference.
+    A connection reference is used when making multiple requests to the same
+    connection, see `transaction/3`.
+  """
+  @type conn :: DBConnection.conn()
+  @type params :: [Type.param()]
 
   @doc """
   Connect to a MS SQL Server using ODBC.
@@ -45,9 +56,10 @@ defmodule Mssqlex do
       iex> {:ok, pid} = Mssqlex.start_link(database: "mr_microsoft")
       {:ok, #PID<0.70.0>}
   """
-  @spec start_link(Keyword.t()) :: {:ok, pid}
+  @spec start_link(Keyword.t()) :: {:ok, pid} | {:error, Error.t() | term}
   def start_link(opts) do
-    DBConnection.start_link(Mssqlex.Protocol, opts)
+    ensure_deps_started!(opts)
+    DBConnection.start_link(Protocol, opts)
   end
 
   @doc """
@@ -101,15 +113,16 @@ defmodule Mssqlex do
       supported due to adapter limitations. Select statements for columns
       of these types must convert them to supported types (e.g. varchar).
   """
-  @spec query(pid(), binary(), [Type.param()], Keyword.t()) ::
-          {:ok, iodata(), Mssqlex.Result.t()}
+
+  @spec query(conn, iodata, params, Keyword.t()) :: {:ok, Result.t()} | {:error, Exception.t()}
   def query(conn, statement, params, opts \\ []) do
-    DBConnection.prepare_execute(
-      conn,
-      %Query{name: "", statement: statement},
-      params,
-      opts
-    )
+    query = %Query{name: "", statement: statement}
+    result = DBConnection.prepare_execute(conn, query, params, opts)
+
+    case result do
+      {:ok, _, result} -> {:ok, result}
+      {:error, _} = error -> error
+    end
   end
 
   @doc """
@@ -118,13 +131,25 @@ defmodule Mssqlex do
   Raises an error on failure. See `query/4` for details.
   """
   @spec query!(pid(), binary(), [Type.param()], Keyword.t()) ::
-          {iodata(), Mssqlex.Result.t()}
+          Mssqlex.Result.t()
   def query!(conn, statement, params, opts \\ []) do
-    DBConnection.prepare_execute!(
-      conn,
-      %Query{name: "", statement: statement},
-      params,
-      opts
-    )
+    case query(conn, statement, params, opts) do
+      {:ok, result} -> result
+      {:error, err} -> raise err
+    end
+  end
+
+  ## Helpers
+  defp ensure_deps_started!(opts) do
+    if Keyword.get(opts, :ssl, false) and
+         not List.keymember?(:application.which_applications(), :ssl, 0) do
+      raise """
+      SSL connection can not be established because `:ssl` application is not started,
+      you can add it to `extra_application` in your `mix.exs`:
+        def application do
+          [extra_applications: [:ssl]]
+        end
+      """
+    end
   end
 end

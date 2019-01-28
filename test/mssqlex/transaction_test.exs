@@ -6,7 +6,7 @@ defmodule Mssqlex.TransactionTest do
   setup_all do
     {:ok, pid} = Mssqlex.start_link([])
     Mssqlex.query!(pid, "DROP DATABASE IF EXISTS transaction_test;", [])
-    {:ok, _, _} = Mssqlex.query(pid, "CREATE DATABASE transaction_test;", [])
+    {:ok, _} = Mssqlex.query(pid, "CREATE DATABASE transaction_test;", [])
 
     {:ok, [pid: pid]}
   end
@@ -16,14 +16,14 @@ defmodule Mssqlex.TransactionTest do
 
     assert {:ok, %Result{}} =
              DBConnection.transaction(pid, fn pid ->
-               {:ok, _, _} =
+               {:ok, _} =
                  Mssqlex.query(
                    pid,
                    "CREATE TABLE #{table_name} (name varchar(50));",
                    []
                  )
 
-               {:ok, _, result} =
+               {:ok, result} =
                  Mssqlex.query(
                    pid,
                    "INSERT INTO #{table_name} VALUES ('Steven');",
@@ -33,7 +33,7 @@ defmodule Mssqlex.TransactionTest do
                result
              end)
 
-    assert {:ok, _query, %Result{columns: ["name"], rows: [["Steven"]]}} =
+    assert {:ok, %Result{columns: ["name"], rows: [["Steven"]]}} =
              Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
@@ -50,7 +50,7 @@ defmodule Mssqlex.TransactionTest do
 
                {:ok, _} =
                  DBConnection.transaction(pid, fn pid ->
-                   {:ok, _, result} =
+                   {:ok, result} =
                      Mssqlex.query(
                        pid,
                        "INSERT INTO #{table_name} VALUES ('Steven');",
@@ -62,7 +62,7 @@ defmodule Mssqlex.TransactionTest do
 
                {:ok, result} =
                  DBConnection.transaction(pid, fn pid ->
-                   {:ok, _, result} =
+                   {:ok, result} =
                      Mssqlex.query(
                        pid,
                        "INSERT INTO #{table_name} VALUES ('Jae');",
@@ -75,7 +75,7 @@ defmodule Mssqlex.TransactionTest do
                result
              end)
 
-    assert {:ok, _query,
+    assert {:ok,
             %Result{columns: ["name"], rows: [["Steven"], ["Jae"]]}} =
              Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
@@ -174,7 +174,7 @@ defmodule Mssqlex.TransactionTest do
                    []
                  )
 
-                 {:ok, _, result} =
+                 {:ok, result} =
                    Mssqlex.query(
                      pid,
                      "INSERT INTO #{table_name} VALUES ('Steven');",
@@ -186,7 +186,7 @@ defmodule Mssqlex.TransactionTest do
                mode: :savepoint
              )
 
-    assert {:ok, _query, %Result{columns: ["name"], rows: [["Steven"]]}} =
+    assert {:ok, %Result{columns: ["name"], rows: [["Steven"]]}} =
              Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
@@ -231,7 +231,7 @@ defmodule Mssqlex.TransactionTest do
       )
     end
 
-    assert {:ok, _, %Result{columns: ["name"], rows: [["Jae"]]}} =
+    assert {:ok, %Result{columns: ["name"], rows: [["Jae"]]}} =
              Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
@@ -250,7 +250,7 @@ defmodule Mssqlex.TransactionTest do
       )
     end)
 
-    assert {:ok, _, %Result{columns: ["name"], rows: [["Tom"]]}} =
+    assert {:ok, %Result{columns: ["name"], rows: [["Tom"]]}} =
              Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
@@ -272,7 +272,7 @@ defmodule Mssqlex.TransactionTest do
       )
     end)
 
-    assert {:ok, _, %Result{columns: ["name"], num_rows: 0, rows: []}} =
+    assert {:ok, %Result{columns: ["name"], num_rows: 0, rows: []}} =
              Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 end

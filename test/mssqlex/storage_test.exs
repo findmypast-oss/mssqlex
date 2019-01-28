@@ -10,10 +10,10 @@ defmodule Mssqlex.StorageTest do
   end
 
   test "can create and drop database", %{pid: pid} do
-    assert {:ok, _, %Result{}} =
+    assert {:ok, %Result{}} =
              Mssqlex.query(pid, "CREATE DATABASE storage_test", [])
 
-    assert {:ok, _, %Result{}} =
+    assert {:ok, %Result{}} =
              Mssqlex.query(pid, "DROP DATABASE storage_test", [])
   end
 
@@ -27,7 +27,7 @@ defmodule Mssqlex.StorageTest do
   test "returns correct error when creating a database that already exists", %{
     pid: pid
   } do
-    assert {:ok, _, %Result{}} =
+    assert {:ok, %Result{}} =
              Mssqlex.query(pid, "CREATE DATABASE storage_test", [])
 
     assert {:error, %{odbc_code: :database_already_exists}} =

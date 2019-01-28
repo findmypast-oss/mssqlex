@@ -12,7 +12,7 @@ defmodule Mssqlex.LoginTest do
   test "Given valid details, connects to database" do
     assert {:ok, pid} = Mssqlex.start_link([])
 
-    assert {:ok, _, %Result{num_rows: 1, rows: [["test"]]}} =
+    assert {:ok, %Result{num_rows: 1, rows: [["test"]]}} =
              Mssqlex.query(pid, "SELECT 'test'", [])
   end
 
@@ -20,7 +20,7 @@ defmodule Mssqlex.LoginTest do
     assert {:ok, pid} =
              Mssqlex.start_link(encrypt: true, trust_server_certificate: true)
 
-    assert {:ok, _, %Result{num_rows: 1, rows: [["TRUE"]]}} =
+    assert {:ok, %Result{num_rows: 1, rows: [["TRUE"]]}} =
              Mssqlex.query(pid, @check_encryption, [])
   end
 
