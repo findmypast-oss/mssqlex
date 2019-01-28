@@ -114,7 +114,8 @@ defmodule Mssqlex do
       of these types must convert them to supported types (e.g. varchar).
   """
 
-  @spec query(conn, iodata, params, Keyword.t()) :: {:ok, Result.t()} | {:error, Exception.t()}
+  @spec query(conn, iodata, params, Keyword.t()) ::
+          {:ok, Result.t()} | {:error, Exception.t()}
   def query(conn, statement, params, opts \\ []) do
     query = %Query{name: "", statement: statement}
     result = DBConnection.prepare_execute(conn, query, params, opts)

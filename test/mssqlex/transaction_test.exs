@@ -75,8 +75,7 @@ defmodule Mssqlex.TransactionTest do
                result
              end)
 
-    assert {:ok,
-            %Result{columns: ["name"], rows: [["Steven"], ["Jae"]]}} =
+    assert {:ok, %Result{columns: ["name"], rows: [["Steven"], ["Jae"]]}} =
              Mssqlex.query(pid, "SELECT * from #{table_name};", [])
   end
 
