@@ -1,5 +1,6 @@
 defmodule Mssqlex.TransactionTest do
   use ExUnit.Case, async: true
+  import ExUnit.CaptureLog
 
   alias Mssqlex.Result
 
@@ -109,10 +110,15 @@ defmodule Mssqlex.TransactionTest do
   end
 
   test "failing transaction timeout test", %{pid: pid} do
-    actual =
-      DBConnection.transaction(pid, fn _ -> :timer.sleep(1000) end, timeout: 0)
+    timer = fn _ -> :timer.sleep(1000) end
 
-    assert {:error, :rollback} = actual
+    time_out = fn ->
+      actual = DBConnection.transaction(pid, timer, timeout: 0)
+      assert {:error, :rollback} = actual
+    end
+
+    assert capture_log(time_out) =~
+             "timed out because it queued and checked out the connection for longer than 0ms"
   end
 
   test "manual rollback transaction test", %{pid: pid} do
