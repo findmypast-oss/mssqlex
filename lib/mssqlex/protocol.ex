@@ -77,11 +77,11 @@ defmodule Mssqlex.Protocol do
            pid: pid,
            conn_opts: opts,
            mssql:
-             if(
-               opts[:auto_commit] == :on,
-               do: :auto_commit,
-               else: :idle
-             )
+             if opts[:auto_commit] == :on do
+               :auto_commit
+             else
+               :idle
+             end
          }}
 
       response ->
@@ -116,7 +116,9 @@ defmodule Mssqlex.Protocol do
   @doc false
   @spec reconnect(new_opts :: Keyword.t(), state) :: {:ok, state}
   def reconnect(new_opts, state) do
-    with :ok <- disconnect("Reconnecting", state), do: connect(new_opts)
+    with :ok <- disconnect("Reconnecting", state) do
+      connect(new_opts)
+    end
   end
 
   @doc false
