@@ -155,13 +155,13 @@ defmodule Mssqlex do
     end
   end
 
-  @spec child_spec(options :: Keyword.t()) :: Supervisor.Spec.spec
+  @spec child_spec(options :: Keyword.t()) :: Supervisor.Spec.spec()
   def child_spec(opts) do
     ensure_deps_started!(opts)
     DBConnection.child_spec(Mssqlex.Protocol, opts)
   end
 
-  def stream(%DBConnection{} = conn, query, params, options \\ [])  do
+  def stream(%DBConnection{} = conn, query, params, options \\ []) do
     options = Keyword.put_new(options, :max_rows, @max_rows)
     %Mssqlex.Stream{conn: conn, query: query, params: params, options: options}
   end

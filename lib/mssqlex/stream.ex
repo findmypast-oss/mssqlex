@@ -18,17 +18,32 @@ end
 
 defimpl Enumerable, for: Mssqlex.Stream do
   alias Mssqlex.Query
+
   def reduce(%Mssqlex.Stream{query: %Query{} = query} = stream, acc, fun) do
     %Mssqlex.Stream{conn: conn, params: params, options: opts} = stream
-    stream = %DBConnection.Stream{conn: conn, query: query, params: params, opts: opts}
+
+    stream = %DBConnection.Stream{
+      conn: conn,
+      query: query,
+      params: params,
+      opts: opts
+    }
+
     DBConnection.reduce(stream, acc, fun)
   end
 
   def reduce(%Mssqlex.Stream{query: statement} = stream, acc, fun) do
     %Mssqlex.Stream{conn: conn, params: params, options: opts} = stream
-    query = %Query{name: "" , statement: statement}
+    query = %Query{name: "", statement: statement}
     opts = Keyword.put(opts, :function, :prepare_open)
-    stream = %DBConnection.PrepareStream{conn: conn, query: query, params: params, opts: opts}
+
+    stream = %DBConnection.PrepareStream{
+      conn: conn,
+      query: query,
+      params: params,
+      opts: opts
+    }
+
     DBConnection.reduce(stream, acc, fun)
   end
 
@@ -57,6 +72,7 @@ defimpl Collectable, for: Mssqlex.Stream do
       %Query{} ->
         copy = DBConnection.execute!(conn, query, params, opts)
         {:ok, make_into(conn, stream, copy, opts)}
+
       query ->
         query = %Query{name: "", statement: query}
         {_, copy} = DBConnection.prepare_execute!(conn, query, params, opts)
@@ -65,7 +81,8 @@ defimpl Collectable, for: Mssqlex.Stream do
   end
 
   def into(_) do
-    raise ArgumentError, "data can only be copied to database inside a transaction"
+    raise ArgumentError,
+          "data can only be copied to database inside a transaction"
   end
 
   defp make_into(conn, stream, %Mssqlex.Copy{ref: ref} = copy, opts) do
@@ -73,6 +90,7 @@ defimpl Collectable, for: Mssqlex.Stream do
       :ok, {:cont, data} ->
         _ = DBConnection.execute!(conn, copy, {:copy_data, ref, data}, opts)
         :ok
+
       :ok, close when close in [:done, :halt] ->
         _ = DBConnection.execute!(conn, copy, {:copy_done, ref}, opts)
         stream
@@ -84,11 +102,11 @@ defimpl DBConnection.Query, for: Mssqlex.Copy do
   alias Mssqlex.Copy
 
   def parse(copy, _) do
-    raise "can not prepare #{inspect copy}"
+    raise "can not prepare #{inspect(copy)}"
   end
 
   def describe(copy, _) do
-    raise "can not describe #{inspect copy}"
+    raise "can not describe #{inspect(copy)}"
   end
 
   def encode(%Copy{ref: ref}, {:copy_data, ref, data}, _) do
@@ -97,7 +115,7 @@ defimpl DBConnection.Query, for: Mssqlex.Copy do
     rescue
       ArgumentError ->
         reraise ArgumentError,
-          "expected iodata to copy to database, got: " <> inspect(data)
+                "expected iodata to copy to database, got: " <> inspect(data)
     else
       iodata ->
         {:copy_data, iodata}
@@ -109,7 +127,7 @@ defimpl DBConnection.Query, for: Mssqlex.Copy do
   end
 
   def decode(copy, _result, _opts) do
-    raise "can not describe #{inspect copy}"
+    raise "can not describe #{inspect(copy)}"
   end
 
   defp encode_msg(_data) do
@@ -119,7 +137,6 @@ defimpl DBConnection.Query, for: Mssqlex.Copy do
   defp msg_copy_data(_data) do
     throw("msg_copy_data not implemented")
   end
-
 end
 
 defimpl String.Chars, for: Mssqlex.Copy do

@@ -355,8 +355,8 @@ defmodule Mssqlex.Protocol do
   end
 
   @callback handle_status(opts, state) ::
-    {status, state} |
-    {:disconnect, Exception.t, state}
+              {status, state}
+              | {:disconnect, Exception.t(), state}
   def handle_status(_opts, _state) do
     throw("not implemeted")
   end
