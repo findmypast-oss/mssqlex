@@ -18,7 +18,6 @@ defmodule Mssqlex.Error do
   @not_allowed_in_transaction_messages [226, 574]
 
   @doc false
-  @spec exception(binary()) :: t()
   def exception({odbc_code, native_code, reason} = message) do
     %__MODULE__{
       message:

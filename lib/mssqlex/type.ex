@@ -72,6 +72,15 @@ defmodule Mssqlex.Type do
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
+  def encode(%NaiveDateTime{} = datetime, _) do
+    encoded =
+      datetime
+      |> to_string
+      |> :unicode.characters_to_binary(:unicode, :latin1)
+
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
+  end
+
   def encode(value, _)
       when is_integer(value) and value > -1_000_000_000 and
              value < 1_000_000_000 do
