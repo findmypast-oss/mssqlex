@@ -334,19 +334,19 @@ defmodule Mssqlex.Protocol do
   end
 
   # NOT IMPLEMENTED
-  def handle_declare(_query, _params, _opts, state) do
+  def handle_declare(_query, _params, _opts, _state) do
     throw("not implemeted")
   end
 
-  def handle_first(_query, _cursor, _opts, state) do
+  def handle_first(_query, _cursor, _opts, _state) do
     throw("not implemeted")
   end
 
-  def handle_next(_query, _cursor, _opts, state) do
+  def handle_next(_query, _cursor, _opts, _state) do
     throw("not implemeted")
   end
 
-  def handle_deallocate(_query, _cursor, _opts, state) do
+  def handle_deallocate(_query, _cursor, _opts, _state) do
     throw("not implemeted")
   end
 
