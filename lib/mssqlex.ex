@@ -13,6 +13,8 @@ defmodule Mssqlex do
   alias Mssqlex.Error
   alias Mssqlex.Protocol
 
+  @max_rows 500
+
   @typedoc """
     A connection process name, pid or reference.
     A connection reference is used when making multiple requests to the same
@@ -140,7 +142,6 @@ defmodule Mssqlex do
     end
   end
 
-  ## Helpers
   defp ensure_deps_started!(opts) do
     if Keyword.get(opts, :ssl, false) and
          not List.keymember?(:application.which_applications(), :ssl, 0) do
@@ -152,5 +153,21 @@ defmodule Mssqlex do
         end
       """
     end
+  end
+
+  @spec child_spec(options :: Keyword.t()) :: Supervisor.Spec.spec
+  def child_spec(opts) do
+    ensure_deps_started!(opts)
+    DBConnection.child_spec(Mssqlex.Protocol, opts)
+  end
+
+  def stream(%DBConnection{} = conn, query, params, options \\ [])  do
+    options = Keyword.put_new(options, :max_rows, @max_rows)
+    %Mssqlex.Stream{conn: conn, query: query, params: params, options: options}
+  end
+
+  def prepare_execute(conn, name, statement, params, opts \\ []) do
+    query = %Query{name: name, statement: statement}
+    DBConnection.prepare_execute(conn, query, params, opts)
   end
 end
