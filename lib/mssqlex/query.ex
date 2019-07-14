@@ -13,7 +13,7 @@ defmodule Mssqlex.Query do
           columns: [String.t()] | nil
         }
 
-  defstruct [:name, :statement, :columns]
+  defstruct [:type, :ref, :num_params, :name, :statement, :columns]
 end
 
 defimpl DBConnection.Query, for: Mssqlex.Query do
