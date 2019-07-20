@@ -109,11 +109,25 @@ defmodule Mssqlex.Type do
   end
 
   def encode(value, _) when is_binary(value) do
-    with utf16 when is_bitstring(utf16) <-
-           :unicode.characters_to_binary(value, :unicode, {:utf16, :little}) do
+    utf16 = :unicode.characters_to_binary(value, :unicode, {:utf16, :little})
+
+    if is_bitstring(utf16) do
       {{:sql_wvarchar, byte_size(value)}, [utf16]}
     else
-      _ -> raise %Mssqlex.Error{message: "failed to convert string to UTF16LE"}
+      if byte_size(value) == 16 do
+        <<u0::32, u1::16, u2::16, u3::16, u4::48>> = value
+
+        value =
+          [<<u0::32>>, <<u1::16>>, <<u2::16>>, <<u3::16>>, <<u4::48>>]
+          |> Enum.map(&Base.encode16/1)
+          |> Enum.join("-")
+
+        {{:sql_char, 36}, [value]}
+      else
+        raise %Mssqlex.Error{
+          message: "failed to convert string to UTF16LE. "
+        }
+      end
     end
   end
 
