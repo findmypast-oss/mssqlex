@@ -47,9 +47,10 @@ defmodule Mssqlex.ODBC do
           | {:error, Exception.t()}
   def query(pid, statement, params, opts) do
     if Process.alive?(pid) do
+      statement = IO.iodata_to_binary(statement)
       GenServer.call(
         pid,
-        {:query, %{statement: IO.iodata_to_binary(statement), params: params}},
+        {:query, %{statement: statement, params: params}},
         Keyword.get(opts, :timeout, 5000)
       )
     else

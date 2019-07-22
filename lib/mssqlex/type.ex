@@ -152,7 +152,10 @@ defmodule Mssqlex.Type do
 
   def decode(value, opts) when is_binary(value) do
     if opts[:preserve_encoding] || String.printable?(value) do
-      value
+      case Integer.parse(value) do
+        {integer, ""} -> integer
+        _ -> value
+      end
     else
       :unicode.characters_to_binary(value, {:utf16, :little}, :unicode)
     end
@@ -167,7 +170,15 @@ defmodule Mssqlex.Type do
   end
 
   def decode({date, {h, m, s}}, _) do
-    {date, {h, m, s, 0}}
+    decode({date, {h, m, s, 0}})
+  end
+
+  def decode({{year, month, day}, {hour, minute, second, msecond}}) do
+    {:ok, date} = Date.new(year, month, day)
+    # microsecond or milisecond?
+    {:ok, time} = Time.new(hour, minute, second, msecond)
+    {:ok, datetime}= NaiveDateTime.new(date, time)
+    datetime
   end
 
   def decode(value, _) do
