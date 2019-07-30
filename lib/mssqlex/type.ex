@@ -1,4 +1,6 @@
 defmodule Mssqlex.Type do
+  require Logger
+
   @moduledoc """
   Type conversions.
   """
@@ -111,10 +113,13 @@ defmodule Mssqlex.Type do
   def encode(value, _) when is_binary(value) do
     utf16 = :unicode.characters_to_binary(value, :unicode, {:utf16, :little})
 
-    if is_bitstring(utf16) do
-      {{:sql_wvarchar, byte_size(value)}, [utf16]}
-    else
-      if byte_size(value) == 16 do
+    cond do
+      # string
+      is_bitstring(utf16) ->
+        {{:sql_wvarchar, byte_size(value)}, [utf16]}
+
+      # uuid
+      byte_size(value) == 16 ->
         <<u0::32, u1::16, u2::16, u3::16, u4::48>> = value
 
         value =
@@ -123,11 +128,11 @@ defmodule Mssqlex.Type do
           |> Enum.join("-")
 
         {{:sql_char, 36}, [value]}
-      else
+
+      true ->
         raise %Mssqlex.Error{
           message: "failed to convert string to UTF16LE. "
         }
-      end
     end
   end
 
@@ -151,13 +156,29 @@ defmodule Mssqlex.Type do
   end
 
   def decode(value, opts) when is_binary(value) do
-    if opts[:preserve_encoding] || String.printable?(value) do
-      case Integer.parse(value) do
-        {integer, ""} -> integer
-        _ -> value
-      end
-    else
-      :unicode.characters_to_binary(value, {:utf16, :little}, :unicode)
+    cond do
+      # string
+      not (opts[:preserve_encoding] || String.printable?(value)) ->
+        :unicode.characters_to_binary(value, {:utf16, :little}, :unicode)
+
+      # uuid
+      String.match?(value, ~r/^(\-)?\d+$/) ->
+        {integer, ""} = Integer.parse(value)
+        integer
+
+      String.match?(
+        value,
+        ~r/\b[0-9A-F]{8}\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\b[0-9A-F]{12}\b/
+      ) ->
+        value
+        |> String.split("-")
+        |> Enum.map(&Base.decode16!/1)
+        |> Enum.join()
+
+      # I don't think this should ever happen
+      true ->
+        Logger.warn(value)
+        value
     end
   end
 
@@ -169,15 +190,15 @@ defmodule Mssqlex.Type do
     nil
   end
 
-  def decode({date, {h, m, s}}, _) do
-    decode({date, {h, m, s, 0}})
+  def decode({date, {h, m, s}}, opts) do
+    decode({date, {h, m, s, 0}}, opts)
   end
 
-  def decode({{year, month, day}, {hour, minute, second, msecond}}) do
+  def decode({{year, month, day}, {hour, minute, second, msecond}}, _) do
     {:ok, date} = Date.new(year, month, day)
     # microsecond or milisecond?
     {:ok, time} = Time.new(hour, minute, second, msecond)
-    {:ok, datetime}= NaiveDateTime.new(date, time)
+    {:ok, datetime} = NaiveDateTime.new(date, time)
     datetime
   end
 
