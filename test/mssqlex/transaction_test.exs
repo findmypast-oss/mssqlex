@@ -104,7 +104,7 @@ defmodule Mssqlex.TransactionTest do
   end
 
   test "failing transaction timeout test", %{pid: pid} do
-    timer = fn _ -> :timer.sleep(1000) end
+    timer = fn _ -> :timer.sleep(100) end
 
     time_out = fn ->
       actual = DBConnection.transaction(pid, timer, timeout: 0)

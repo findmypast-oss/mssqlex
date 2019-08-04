@@ -123,8 +123,15 @@ defmodule Mssqlex do
   def query(conn, statement, params, opts) do
     case Keyword.get(opts, :query_type) do
       :text ->
-        query = %Query{type: :text, statement: statement, ref: make_ref(), num_params: 0}
+        query = %Query{
+          type: :text,
+          statement: statement,
+          ref: make_ref(),
+          num_params: 0
+        }
+
         run_query(:execute, conn, query, [], opts)
+
       type when type in [:binary, nil] ->
         query = %Query{type: type, statement: statement}
         run_query(:prepare_execute, conn, query, params, opts)
@@ -133,9 +140,11 @@ defmodule Mssqlex do
 
   defp run_query(op, conn, query, params, opts) do
     result = apply(DBConnection, op, [conn, query, params, opts])
+
     case result do
       {:ok, _, result} ->
         {:ok, result}
+
       {:error, _} = error ->
         error
     end

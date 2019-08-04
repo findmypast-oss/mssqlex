@@ -140,6 +140,7 @@ defmodule Mssqlex.Protocol do
       :transaction -> handle_transaction(:begin, opts, state)
       :savepoint -> handle_savepoint(:begin, opts, state)
     end
+    |> clean_result()
   end
 
   @doc false
@@ -152,6 +153,7 @@ defmodule Mssqlex.Protocol do
       :transaction -> handle_transaction(:commit, opts, state)
       :savepoint -> handle_savepoint(:commit, opts, state)
     end
+    |> clean_result()
   end
 
   @doc false
@@ -163,6 +165,17 @@ defmodule Mssqlex.Protocol do
     case Keyword.get(opts, :mode, :transaction) do
       :transaction -> handle_transaction(:rollback, opts, state)
       :savepoint -> handle_savepoint(:rollback, opts, state)
+    end
+    |> clean_result()
+  end
+
+  defp clean_result(result) do
+    case result do
+      {:ok, _query, %Mssqlex.Result{} = result, %Mssqlex.Protocol{} = state} ->
+        {:ok, result, state}
+
+      result ->
+        result
     end
   end
 
@@ -333,6 +346,10 @@ defmodule Mssqlex.Protocol do
     end
   end
 
+  @spec handle_status(opts, state) :: {DBConnection.status(), state}
+  def handle_status(_, %{mssql: {status, _}} = s), do: {status, s}
+  def handle_status(_, %{mssql: status} = s), do: {status, s}
+
   # NOT IMPLEMENTED
   def handle_declare(_query, _params, _opts, _state) do
     throw("not implemeted")
@@ -351,13 +368,6 @@ defmodule Mssqlex.Protocol do
   end
 
   def handle_fetch(_query, _cursor, _opts, _state) do
-    throw("not implemeted")
-  end
-
-  @callback handle_status(opts, state) ::
-              {status, state}
-              | {:disconnect, Exception.t(), state}
-  def handle_status(_opts, _state) do
     throw("not implemeted")
   end
 end
