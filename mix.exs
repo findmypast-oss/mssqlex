@@ -4,7 +4,7 @@ defmodule Mssqlex.Mixfile do
   def project do
     [
       app: :mssqlex,
-      version: "2.0.0",
+      version: "2.0.0-beta.0",
       description:
         "Adapter to Microsoft SQL Server. Using DBConnection and ODBC.",
       elixir: "~> 1.8",
