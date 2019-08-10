@@ -76,14 +76,15 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "numeric(38, 0) as decimal", %{pid: pid} do
-    number = "12345678901234567890123456789012345678"
+    number = 12_345_678_901_234_567_890_123_456_789_012_345_678
+    number_str = "12345678901234567890123456789012345678"
 
     assert %Result{columns: ["test"], rows: [[^number]]} =
-             act(pid, "numeric(38)", [Decimal.new(number)])
+             act(pid, "numeric(38)", [Decimal.new(number_str)])
   end
 
   test "numeric(36, 0) as string", %{pid: pid} do
-    number = "123456789012345678901234567890123456"
+    number = 123_456_789_012_345_678_901_234_567_890_123_456
 
     assert %Result{columns: ["test"], rows: [[^number]]} =
              act(pid, "numeric(36)", [number])
@@ -151,7 +152,7 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "bigint", %{pid: pid} do
-    assert %Result{columns: ["test"], rows: [["-9223372036854775808"]]} =
+    assert %Result{columns: ["test"], rows: [[-9_223_372_036_854_775_808]]} =
              act(pid, "bigint", [-9_223_372_036_854_775_808])
   end
 
@@ -171,17 +172,17 @@ defmodule Mssqlex.TypesTest do
   end
 
   test "smalldatetime as tuple", %{pid: pid} do
-    assert %Result{columns: ["test"], rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]} =
+    assert %Result{columns: ["test"], rows: [[~N[2017-01-01 12:10:00.000000]]]} =
              act(pid, "smalldatetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "datetime as tuple", %{pid: pid} do
-    assert %Result{columns: ["test"], rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]} =
+    assert %Result{columns: ["test"], rows: [[~N[2017-01-01 12:10:00.000000]]]} =
              act(pid, "datetime", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "datetime2 as tuple", %{pid: pid} do
-    assert %Result{columns: ["test"], rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]} =
+    assert %Result{columns: ["test"], rows: [[~N[2017-01-01 12:10:00.000000]]]} =
              act(pid, "datetime2", [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
@@ -222,9 +223,14 @@ defmodule Mssqlex.TypesTest do
       )
     end
 
-    assert %Result{rows: [["6F9619FF-8B86-D011-B42D-00C04FC964FF"]]} =
+    {:ok, uuid_binary} =
+      "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      |> String.replace("-", "")
+      |> Base.decode16()
+
+    assert %Result{rows: [[uuid_binary]]} =
              do_act.(pid, "uniqueidentifier", [
-               "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+               uuid_binary
              ])
   end
 

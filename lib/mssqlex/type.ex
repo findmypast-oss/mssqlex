@@ -195,7 +195,6 @@ defmodule Mssqlex.Type do
 
       # I don't think this should ever happen
       true ->
-        Logger.warn(value)
         value
     end
   end
