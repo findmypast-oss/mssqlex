@@ -3,6 +3,9 @@ defmodule Mssqlex.Type do
 
   @moduledoc """
   Type conversions.
+
+  Note the :odbc return types for decoding can be found here:
+  http://erlang.org/doc/apps/odbc/databases.html#data-types-
   """
 
   @typedoc "Input param."
@@ -184,11 +187,12 @@ defmodule Mssqlex.Type do
       not (opts[:preserve_encoding] || String.printable?(value)) ->
         :unicode.characters_to_binary(value, {:utf16, :little}, :unicode)
 
-      # uuid
+      # ids default to string for some reason
       String.match?(value, ~r/^(\-)?\d+$/) ->
         {integer, ""} = Integer.parse(value)
         integer
 
+      # uuid
       String.match?(
         value,
         ~r/\b[0-9A-F]{8}\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\b[0-9A-F]{12}\b/

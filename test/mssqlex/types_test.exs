@@ -61,11 +61,13 @@ defmodule Mssqlex.TypesTest do
              act(pid, "numeric(9)", [123_456_789])
   end
 
+  @tag :decimal_type
   test "numeric(8, 0) as decimal", %{pid: pid} do
     assert %Result{columns: ["test"], rows: [[12_345_678]]} =
              act(pid, "numeric(8)", [Decimal.new(12_345_678)])
   end
 
+  @tag :decimal_type
   test "numeric(15, 0) as decimal", %{pid: pid} do
     number = Decimal.new("123456789012345")
 
@@ -75,6 +77,8 @@ defmodule Mssqlex.TypesTest do
     assert Decimal.equal?(number, value)
   end
 
+  @tag :skip
+  @tag :decimal_type
   test "numeric(38, 0) as decimal", %{pid: pid} do
     number = 12_345_678_901_234_567_890_123_456_789_012_345_678
     number_str = "12345678901234567890123456789012345678"
@@ -83,6 +87,8 @@ defmodule Mssqlex.TypesTest do
              act(pid, "numeric(38)", [Decimal.new(number_str)])
   end
 
+  @tag :skip
+  @tag :decimal_type
   test "numeric(36, 0) as string", %{pid: pid} do
     number = 123_456_789_012_345_678_901_234_567_890_123_456
 
@@ -90,6 +96,7 @@ defmodule Mssqlex.TypesTest do
              act(pid, "numeric(36)", [number])
   end
 
+  @tag :decimal_type
   test "numeric(5, 2) as decimal", %{pid: pid} do
     number = Decimal.new("123.45")
 
@@ -99,6 +106,7 @@ defmodule Mssqlex.TypesTest do
     assert Decimal.equal?(number, value)
   end
 
+  @tag :decimal_type
   test "numeric(6, 3) as float", %{pid: pid} do
     number = Decimal.new("123.456")
 
@@ -108,6 +116,7 @@ defmodule Mssqlex.TypesTest do
     assert Decimal.equal?(number, value)
   end
 
+  @tag :decimal_type
   test "real as decimal", %{pid: pid} do
     number = Decimal.new("123.45")
 
@@ -117,6 +126,7 @@ defmodule Mssqlex.TypesTest do
     assert Decimal.equal?(number, Decimal.round(value, 2))
   end
 
+  @tag :decimal_type
   test "float as decimal", %{pid: pid} do
     number = Decimal.new("123.45")
 
@@ -126,6 +136,7 @@ defmodule Mssqlex.TypesTest do
     assert Decimal.equal?(number, Decimal.round(value, 2))
   end
 
+  @tag :decimal_type
   test "double as decimal", %{pid: pid} do
     number = Decimal.new("1.12345678901234")
 
@@ -135,6 +146,7 @@ defmodule Mssqlex.TypesTest do
     assert Decimal.equal?(number, value)
   end
 
+  @tag :decimal_type
   test "money as decimal", %{pid: pid} do
     number = Decimal.new("1000000.45")
 
@@ -142,6 +154,7 @@ defmodule Mssqlex.TypesTest do
              act(pid, "money", [number])
   end
 
+  @tag :decimal_type
   test "smallmoney as decimal", %{pid: pid} do
     number = Decimal.new("123.45")
 
@@ -326,6 +339,7 @@ defmodule Mssqlex.TypesTest do
       [],
       opts
     )
+    |> IO.inspect()
 
     Mssqlex.query!(
       pid,
@@ -333,6 +347,7 @@ defmodule Mssqlex.TypesTest do
       params,
       opts
     )
+    |> IO.inspect()
 
     Mssqlex.query!(pid, "SELECT * FROM #{table_name(type)}", [], opts)
   end
