@@ -125,7 +125,12 @@ defmodule Mssqlex.Type do
     encoded =
       value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
 
-    {{:sql_varchar, String.length(encoded)}, [encoded]}
+    precision = Decimal.get_context().precision
+    scale = calculate_decimal_scale(value)
+
+    odbc_data_type = {:sql_decimal, precision, scale}
+
+    {odbc_data_type, [encoded]}
   end
 
   def encode(value, _) when is_binary(value) do
@@ -221,5 +226,10 @@ defmodule Mssqlex.Type do
 
   def decode(value, _) do
     value
+  end
+
+  defp calculate_decimal_scale(dec) do
+    coef_size = dec.coef |> Integer.digits() |> Enum.count()
+    coef_size + dec.exp - 1
   end
 end
