@@ -33,7 +33,9 @@ defimpl DBConnection.Query, for: Mssqlex.Query do
           opts :: Keyword.t()
         ) :: [Type.param()]
   def encode(_query, params, opts) do
-    Enum.map(params, &Type.encode(&1, opts))
+    params
+    |> List.flatten()
+    |> Enum.map(&Type.encode(&1, opts))
   end
 
   @spec decode(query :: Query.t(), result :: Result.t(), opts :: Keyword.t()) ::
