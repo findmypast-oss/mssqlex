@@ -131,8 +131,10 @@ defmodule Mssqlex.Type do
     precision = Decimal.get_context().precision
     scale = calculate_decimal_scale(value)
 
-    odbc_data_type = {:sql_decimal, precision, scale}
+    # precision = value.coef |> Integer.digits() |> Enum.count()
+    # scale = precision + value.exp - 1
 
+    odbc_data_type = {:sql_decimal, precision, scale}
     {odbc_data_type, [encoded]}
   end
 

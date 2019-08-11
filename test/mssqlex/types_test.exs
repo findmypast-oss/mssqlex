@@ -62,12 +62,14 @@ defmodule Mssqlex.TypesTest do
   end
 
   @tag :decimal_type
+  @tag :skip
   test "numeric(8, 0) as decimal", %{pid: pid} do
     assert %Result{columns: ["test"], rows: [[12_345_678]]} =
              act(pid, "numeric(8)", [Decimal.new(12_345_678)])
   end
 
   @tag :decimal_type
+  @tag :skip
   test "numeric(15, 0) as decimal", %{pid: pid} do
     number = Decimal.new("123456789012345")
 
@@ -137,6 +139,7 @@ defmodule Mssqlex.TypesTest do
   end
 
   @tag :decimal_type
+  @tag :skip
   test "double as decimal", %{pid: pid} do
     number = Decimal.new("1.12345678901234")
 
@@ -147,6 +150,7 @@ defmodule Mssqlex.TypesTest do
   end
 
   @tag :decimal_type
+  @tag :skip
   test "money as decimal", %{pid: pid} do
     number = Decimal.new("1000000.45")
 
@@ -339,7 +343,6 @@ defmodule Mssqlex.TypesTest do
       [],
       opts
     )
-    |> IO.inspect()
 
     Mssqlex.query!(
       pid,
@@ -347,7 +350,6 @@ defmodule Mssqlex.TypesTest do
       params,
       opts
     )
-    |> IO.inspect()
 
     Mssqlex.query!(pid, "SELECT * FROM #{table_name(type)}", [], opts)
   end
