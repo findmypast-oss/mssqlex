@@ -25,6 +25,7 @@ defmodule Mssqlex.ODBC do
   """
   @spec start_link(binary(), Keyword.t()) :: {:ok, pid()}
   def start_link(conn_str, opts) do
+    Mssqlex.TypeParser.Agent.start_link()
     GenServer.start_link(__MODULE__, [{:conn_str, to_charlist(conn_str)} | opts])
   end
 
@@ -54,6 +55,14 @@ defmodule Mssqlex.ODBC do
         {:query, %{statement: statement, params: params}},
         Keyword.get(opts, :timeout, 5000)
       )
+    else
+      {:error, %Mssqlex.Error{message: :no_connection}}
+    end
+  end
+
+  def describe(pid, table) do
+    if Process.alive?(pid) do
+      GenServer.call(pid, {:describe, table})
     else
       {:error, %Mssqlex.Error{message: :no_connection}}
     end
@@ -130,9 +139,17 @@ defmodule Mssqlex.ODBC do
         _from,
         state
       ) do
-    {:reply,
-     handle_errors(:odbc.param_query(state, to_charlist(statement), params)),
-     state}
+    resp =
+      state
+      |> :odbc.param_query(to_charlist(statement), params)
+      |> handle_errors()
+
+    {:reply, resp, state}
+  end
+
+  @doc false
+  def handle_call({:describe, table}, _from, state) do
+    {:reply, handle_errors(:odbc.describe_table(state, table)), state}
   end
 
   @doc false

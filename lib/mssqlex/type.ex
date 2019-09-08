@@ -64,7 +64,7 @@ defmodule Mssqlex.Type do
   end
 
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
-    precision = if usec == 0, do: 0, else: 2
+    precision = if usec == 0, do: 0, else: 6
 
     encoded =
       NaiveDateTime.from_erl!(
@@ -111,10 +111,9 @@ defmodule Mssqlex.Type do
   end
 
   def encode(value, _) when is_integer(value) do
-    encoded =
-      value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    #encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
 
-    {{:sql_varchar, String.length(encoded)}, [encoded]}
+    {:sql_integer, [value]}
   end
 
   def encode(value, _) when is_float(value) do
@@ -190,9 +189,9 @@ defmodule Mssqlex.Type do
         :unicode.characters_to_binary(value, {:utf16, :little}, :unicode)
 
       # ids default to string for some reason
-      String.match?(value, ~r/^(\-)?\d+$/) ->
-        {integer, ""} = Integer.parse(value)
-        integer
+      #String.match?(value, ~r/^(\-)?\d+$/) ->
+        #{integer, ""} = Integer.parse(value)
+        #integer
 
       # uuid
       String.match?(
