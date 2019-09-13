@@ -71,6 +71,16 @@ defmodule Mssqlex.TypeParser do
   defp parse({:sql_integer, data}) when is_binary(data),
     do: String.to_integer(data)
 
+  defp parse({{:sql_numeric, _, _}, data}) when is_binary(data) do
+    {float, ""} = Float.parse(data)
+    Decimal.from_float(float)
+  end
+
+  defp parse({{:sql_decimal, _, _}, data}) when is_binary(data) do
+    {float, ""} = Float.parse(data)
+    Decimal.from_float(float)
+  end
+
   defp parse({_type, data}) do
     #{_type, data} |> IO.inspect()
     data

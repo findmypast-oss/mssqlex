@@ -45,9 +45,9 @@ defmodule Mssqlex.Type do
 
   def encode({_year, _month, _day} = date, _) do
     encoded =
-      Date.from_erl!(date)
-      |> to_string
-      |> :unicode.characters_to_binary(:unicode, :latin1)
+      date
+      |> Date.from_erl!()
+      |> to_encoded_string()
 
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
@@ -57,8 +57,7 @@ defmodule Mssqlex.Type do
 
     encoded =
       Time.from_erl!({hour, minute, sec}, {usec, precision})
-      |> to_string
-      |> :unicode.characters_to_binary(:unicode, :latin1)
+      |> to_encoded_string()
 
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
@@ -71,36 +70,23 @@ defmodule Mssqlex.Type do
         {{year, month, day}, {hour, minute, sec}},
         {usec, precision}
       )
-      |> to_string
-      |> :unicode.characters_to_binary(:unicode, :latin1)
+      |> to_encoded_string()
 
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(%NaiveDateTime{} = datetime, _) do
-    encoded =
-      datetime
-      |> to_string
-      |> :unicode.characters_to_binary(:unicode, :latin1)
-
+    encoded = to_encoded_string(datetime)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(%DateTime{} = datetime, _) do
-    encoded =
-      datetime
-      |> to_string
-      |> :unicode.characters_to_binary(:unicode, :latin1)
-
+    encoded = to_encoded_string(datetime)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(%Date{} = date, _) do
-    encoded =
-      date
-      |> to_string
-      |> :unicode.characters_to_binary(:unicode, :latin1)
-
+    encoded = to_encoded_string(date)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
@@ -111,24 +97,17 @@ defmodule Mssqlex.Type do
   end
 
   def encode(value, _) when is_integer(value) do
-    encoded =
-      value
-      |> to_string
-      |> :unicode.characters_to_binary(:unicode, :latin1)
-
+    encoded = to_encoded_string(value)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_float(value) do
-    encoded =
-      value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
-
+    encoded = to_encoded_string(value)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(%Decimal{} = value, _) do
-    encoded =
-      value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    encoded = to_encoded_string(value)
 
     precision = Decimal.get_context().precision
     scale = calculate_decimal_scale(value)
@@ -176,6 +155,12 @@ defmodule Mssqlex.Type do
     raise %Mssqlex.Error{
       message: "could not parse param #{inspect(value)} of unrecognised type."
     }
+  end
+
+  defp to_encoded_string(data) do
+    data
+    |> to_string()
+    |> :unicode.characters_to_binary(:unicode, :latin1)
   end
 
   @doc """
