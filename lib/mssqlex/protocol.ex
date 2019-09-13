@@ -302,7 +302,13 @@ defmodule Mssqlex.Protocol do
         {:error, reason, state}
 
       {:selected, columns, rows} ->
-        rows = Mssqlex.TypeParser.parse_rows(state.pid, query.statement, columns, rows)
+        rows =
+          Mssqlex.TypeParser.parse_rows(
+            state.pid,
+            query.statement,
+            columns,
+            rows
+          )
 
         {:ok,
          %Result{
