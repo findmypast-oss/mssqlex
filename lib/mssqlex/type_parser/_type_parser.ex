@@ -30,30 +30,65 @@ defmodule Mssqlex.TypeParser do
   end
 
   defp find_tables(pid, tail, queried_columns, rows) do
-        case parse_tables(tail, []) do
-          [table] ->
-            table_columns = TypeAgent.fetch_table_columns(pid, table)
-            parse(table_columns, queried_columns, rows)
+    case build_table_list(tail, []) do
+      [table] ->
+        table_columns = TypeAgent.fetch_table_columns(pid, table)
+        parse(table_columns, queried_columns, rows)
 
-          [] ->
-            rows
+      [] ->
+        rows
 
-          table_list ->
-            [table | _tail] = Enum.reverse(table_list)
-            table_columns = TypeAgent.fetch_table_columns(pid, table)
-            parse(table_columns, queried_columns, rows)
-        end
+      table_list ->
+        table_list
+        |> Enum.reverse()
+        |> Enum.map(&TypeAgent.fetch_table_columns(pid, &1))
+        |> parse_tables(queried_columns, rows)
+    end
   end
 
-  defp parse_tables([], tables), do: tables
+  defp build_table_list([], tables), do: tables
 
-  defp parse_tables(["FROM", "(SELECT" | tail], tables),
-    do: parse_tables(tail, tables)
+  defp build_table_list(["FROM", "(SELECT" | tail], tables),
+    do: build_table_list(tail, tables)
 
-  defp parse_tables(["FROM", table | tail], tables),
-    do: parse_tables(tail, [table | tables])
+  defp build_table_list(["FROM", table | tail], tables),
+    do: build_table_list(tail, [table | tables])
 
-  defp parse_tables([_ | tail], tables), do: parse_tables(tail, tables)
+  defp build_table_list(["JOIN", table | tail], tables),
+    do: build_table_list(tail, [table | tables])
+
+  defp build_table_list([_ | tail], tables), do: build_table_list(tail, tables)
+
+  defp parse_tables(tables, queried_columns, rows) do
+    types =
+      Enum.map(queried_columns, fn column ->
+        tables
+        |> Enum.map(&Map.get(&1, column))
+        |> Enum.filter(& &1)
+        |> Enum.sort()
+        |> Enum.dedup()
+      end)
+
+    rows
+    |> Enum.map(&Enum.zip(types, &1))
+    |> Enum.map(&parse_and_select/1)
+  end
+
+  defp parse_and_select(row) do
+    parse(row)
+    |> Enum.map(fn col ->
+      col =
+        col
+        |> Enum.sort()
+        |> Enum.dedup()
+
+      if Enum.count(col) == 1 do
+        List.first(col)
+      else
+        raise "unable to determine correct type of #{inspect(col)}"
+      end
+    end)
+  end
 
   defp parse(table_columns, queried_columns, rows) do
     types = Enum.map(queried_columns, &Map.get(table_columns, &1))
@@ -65,8 +100,15 @@ defmodule Mssqlex.TypeParser do
 
   defp parse([]), do: []
   defp parse([head | tail]), do: [parse(head) | parse(tail)]
+
+  defp parse({types, data}) when is_list(types) do
+    Enum.map(types, fn type -> parse({type, data}) end)
+  end
+
   defp parse({_type, :null}), do: :null
-  defp parse({:SQL_BIGINT, data}), do: String.to_integer(data)
+
+  defp parse({:SQL_BIGINT, data}) when is_binary(data),
+    do: String.to_integer(data)
 
   defp parse({:sql_integer, data}) when is_binary(data),
     do: String.to_integer(data)
@@ -82,7 +124,7 @@ defmodule Mssqlex.TypeParser do
   end
 
   defp parse({_type, data}) do
-    #{_type, data} |> IO.inspect()
+    # {_type, data} |> IO.inspect()
     data
   end
 end
