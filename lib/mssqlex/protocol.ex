@@ -72,6 +72,7 @@ defmodule Mssqlex.Protocol do
       end)
 
     {:ok, pid} = ODBC.start_link(conn_str, opts)
+    {:ok, _pid} = Mssqlex.TypeParser.Agent.start_link(pid)
 
     {:ok,
      %__MODULE__{

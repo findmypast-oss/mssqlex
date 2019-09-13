@@ -25,7 +25,6 @@ defmodule Mssqlex.ODBC do
   """
   @spec start_link(binary(), Keyword.t()) :: {:ok, pid()}
   def start_link(conn_str, opts) do
-    Mssqlex.TypeParser.Agent.start_link()
     GenServer.start_link(__MODULE__, [{:conn_str, to_charlist(conn_str)} | opts])
   end
 
@@ -137,34 +136,34 @@ defmodule Mssqlex.ODBC do
   def handle_call(
         {:query, %{statement: statement, params: params}},
         _from,
-        state
+        pid
       ) do
     resp =
-      state
+      pid
       |> :odbc.param_query(to_charlist(statement), params)
       |> handle_errors()
 
-    {:reply, resp, state}
+    {:reply, resp, pid}
   end
 
   @doc false
-  def handle_call({:describe, table}, _from, state) do
-    {:reply, handle_errors(:odbc.describe_table(state, table)), state}
+  def handle_call({:describe, table}, _from, pid) do
+    {:reply, handle_errors(:odbc.describe_table(pid, table)), pid}
   end
 
   @doc false
-  def handle_call(:commit, _from, state) do
-    {:reply, handle_errors(:odbc.commit(state, :commit)), state}
+  def handle_call(:commit, _from, pid) do
+    {:reply, handle_errors(:odbc.commit(pid, :commit)), pid}
   end
 
   @doc false
-  def handle_call(:rollback, _from, state) do
-    {:reply, handle_errors(:odbc.commit(state, :rollback)), state}
+  def handle_call(:rollback, _from, pid) do
+    {:reply, handle_errors(:odbc.commit(pid, :rollback)), pid}
   end
 
   @doc false
-  def terminate(_reason, state) do
-    :odbc.disconnect(state)
+  def terminate(_reason, pid) do
+    :odbc.disconnect(pid)
   end
 
   defp handle_errors({:error, reason}), do: {:error, Error.exception(reason)}

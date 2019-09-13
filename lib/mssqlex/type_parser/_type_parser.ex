@@ -11,11 +11,11 @@ defmodule Mssqlex.TypeParser do
       when is_list(statement) do
     case statement do
       ["INSERT INTO ", [34, table, 34] | _] ->
-        table_columns = Mssqlex.TypeParser.Agent.fetch_table_columns(pid, table)
+        table_columns = TypeAgent.fetch_table_columns(pid, table)
         parse(table_columns, queried_columns, rows)
 
       ["UPDATE ", [34, table, 34] | _] ->
-        table_columns = Mssqlex.TypeParser.Agent.fetch_table_columns(pid, table)
+        table_columns = TypeAgent.fetch_table_columns(pid, table)
         parse(table_columns, queried_columns, rows)
 
       ["DELETE" | tail] ->

@@ -111,9 +111,12 @@ defmodule Mssqlex.Type do
   end
 
   def encode(value, _) when is_integer(value) do
-    #encoded = value |> to_string |> :unicode.characters_to_binary(:unicode, :latin1)
+    encoded =
+      value
+      |> to_string
+      |> :unicode.characters_to_binary(:unicode, :latin1)
 
-    {:sql_integer, [value]}
+    {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
   def encode(value, _) when is_float(value) do
@@ -167,6 +170,8 @@ defmodule Mssqlex.Type do
     {:sql_integer, [:null]}
   end
 
+  # def encode(values, v) when is_list(values), do: Enum.map(values, &encode(&1, v))
+
   def encode(value, _) do
     raise %Mssqlex.Error{
       message: "could not parse param #{inspect(value)} of unrecognised type."
@@ -187,11 +192,6 @@ defmodule Mssqlex.Type do
       # string
       not (opts[:preserve_encoding] || String.printable?(value)) ->
         :unicode.characters_to_binary(value, {:utf16, :little}, :unicode)
-
-      # ids default to string for some reason
-      #String.match?(value, ~r/^(\-)?\d+$/) ->
-        #{integer, ""} = Integer.parse(value)
-        #integer
 
       # uuid
       String.match?(
