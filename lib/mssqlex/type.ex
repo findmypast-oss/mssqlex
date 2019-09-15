@@ -149,7 +149,8 @@ defmodule Mssqlex.Type do
     {:sql_integer, [:null]}
   end
 
-  # def encode(values, v) when is_list(values), do: Enum.map(values, &encode(&1, v))
+  def encode(values, v) when is_list(values),
+    do: Enum.map(values, &encode(&1, v))
 
   def encode(value, _) do
     raise %Mssqlex.Error{
