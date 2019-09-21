@@ -102,16 +102,14 @@ defmodule Mssqlex do
     * char and varchar: strings.
     * nchar and nvarchar: strings unless `:preserve_encoding` is set to `true`
       in which case they will be returned as UTF16 Little Endian binaries.
-    * int, smallint, tinyint, decimal and numeric when precision < 10 and
-      scale = 0 (i.e. effectively integers): integers.
-    * float, real, double precision, decimal and numeric when precision between
-      10 and 15 and/or scale between 1 and 15: `Decimal` structs.
-    * bigint, money, decimal and numeric when precision > 15: strings.
+    * int, smallint, tinyint and bigint: integers.
+    * float, real, double precision, decimal and numeric: `Decimal` structs.
     * date: `{year, month, day}`
     * smalldatetime, datetime, dateime2: `{{YY, MM, DD}, {HH, MM, SS, 0}}` (note that fractional
       second data is lost due to limitations of the ODBC adapter. To preserve it
       you can convert these columns to varchar during selection.)
-    * uniqueidentifier, time, binary, varbinary, rowversion: not currently
+    * uniqueidentifier: string
+    * time, binary, varbinary, rowversion: not currently
       supported due to adapter limitations. Select statements for columns
       of these types must convert them to supported types (e.g. varchar).
   """

@@ -28,7 +28,7 @@ by adding `mssqlex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:mssqlex, "~> 1.1.0"}]
+  [{:mssqlex, "~> 2.0.0-beta.0"}]
 end
 ```
 
@@ -43,5 +43,31 @@ The easiest way to get an instance running is to use the SQL Server Docker image
 ```sh
 export MSSQL_UID=sa
 export MSSQL_PWD='ThePa$$word'
-docker --name test_mssqlex_server run -e 'ACCEPT_EULA=Y' -e SA_PASSWORD=$MSSQL_PWD -p 1433:1433 -d microsoft/mssql-server-linux
+docker run --name test_mssqlex_server -e 'ACCEPT_EULA=Y' -e SA_PASSWORD=$MSSQL_PWD -p 1433:1433 -d microsoft/mssql-server-linux
 ```
+
+## Known Issues
+
+### Fixable
+
+- Needs better handling for UUIDs
+
+### Requires investigation
+
+- Several syntax errors occur under specific conditions (of the form 'syntax error near')
+- Many-to-many doesn't seem to return duplicates
+- Fails to autogenerate binary_id type
+- Limited support for unique constraints
+- Doesn't handle no association constraint correctly
+- Problems with has_many association on delete
+
+### Probably Unfixable
+
+- Migrations can fail when primary keys are changed
+- No support for transactions, locks, windows or streams. Can also cause issues for migrations if the programmer runs the migration while other operations are happening on the database.
+- Datetime intervals not implemented
+
+### Unfixable due to technical limitations
+
+- The ambiguity of Transact SQL's order by statement can cause problems in more complex queries [see here](https://www.sqlpassion.at/archive/2015/05/25/the-ambiguity-of-the-order-by-in-sql-server/)
+- The following error will randomly but rarely occur 'Error in /usr/lib/erlang/lib/odbc-2.12.3/priv/bin/odbcserver': double free or corruption (fasttop): 0x0000000001cb75c0'

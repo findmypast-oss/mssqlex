@@ -1,6 +1,10 @@
 defmodule Mssqlex.TypeParser do
   alias Mssqlex.TypeParser.Agent, as: TypeAgent
 
+  @moduledoc """
+  Parser for table column data types.
+  """
+
   def parse_rows(pid, statement, queried_columns, rows)
       when is_binary(statement) do
     statement = String.split(statement)

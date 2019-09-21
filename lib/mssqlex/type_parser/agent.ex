@@ -1,6 +1,10 @@
 defmodule Mssqlex.TypeParser.Agent do
   use Agent
 
+  @moduledoc """
+  Agent for fetching and storing the table column types.
+  """
+
   def start_link(pid) do
     Agent.start_link(fn -> %{} end, name: via_tuple(pid))
   end
@@ -18,7 +22,6 @@ defmodule Mssqlex.TypeParser.Agent do
     {table_columns, tables}
   end
 
-  @doc false
   defp get_table_columns(pid, table, tables) do
     case Map.get(tables, table) do
       nil ->
