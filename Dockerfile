@@ -32,4 +32,4 @@ RUN mix do deps.get, deps.compile
 
 # --- Be able to run wait for it script ---
 
-RUN chmod +x /usr/src/app/wait-for-it.sh
+RUN chmod +x /usr/src/app/bash_scripts/wait-for-it.sh
