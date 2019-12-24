@@ -4,7 +4,7 @@ defmodule Mssqlex.ConstraintsTest do
   setup_all do
     {:ok, pid} = Mssqlex.start_link([])
     Mssqlex.query!(pid, "DROP DATABASE IF EXISTS constraints_test;", [])
-    {:ok, _, _} = Mssqlex.query(pid, "CREATE DATABASE constraints_test;", [])
+    {:ok, _} = Mssqlex.query(pid, "CREATE DATABASE constraints_test;", [])
 
     {:ok, [pid: pid]}
   end

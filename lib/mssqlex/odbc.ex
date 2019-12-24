@@ -47,11 +47,21 @@ defmodule Mssqlex.ODBC do
           | {:error, Exception.t()}
   def query(pid, statement, params, opts) do
     if Process.alive?(pid) do
+      statement = IO.iodata_to_binary(statement)
+
       GenServer.call(
         pid,
-        {:query, %{statement: IO.iodata_to_binary(statement), params: params}},
+        {:query, %{statement: statement, params: params}},
         Keyword.get(opts, :timeout, 5000)
       )
+    else
+      {:error, %Mssqlex.Error{message: :no_connection}}
+    end
+  end
+
+  def describe(pid, table) do
+    if Process.alive?(pid) do
+      GenServer.call(pid, {:describe, table})
     else
       {:error, %Mssqlex.Error{message: :no_connection}}
     end
@@ -126,26 +136,34 @@ defmodule Mssqlex.ODBC do
   def handle_call(
         {:query, %{statement: statement, params: params}},
         _from,
-        state
+        pid
       ) do
-    {:reply,
-     handle_errors(:odbc.param_query(state, to_charlist(statement), params)),
-     state}
+    resp =
+      pid
+      |> :odbc.param_query(to_charlist(statement), params)
+      |> handle_errors()
+
+    {:reply, resp, pid}
   end
 
   @doc false
-  def handle_call(:commit, _from, state) do
-    {:reply, handle_errors(:odbc.commit(state, :commit)), state}
+  def handle_call({:describe, table}, _from, pid) do
+    {:reply, handle_errors(:odbc.describe_table(pid, table)), pid}
   end
 
   @doc false
-  def handle_call(:rollback, _from, state) do
-    {:reply, handle_errors(:odbc.commit(state, :rollback)), state}
+  def handle_call(:commit, _from, pid) do
+    {:reply, handle_errors(:odbc.commit(pid, :commit)), pid}
   end
 
   @doc false
-  def terminate(_reason, state) do
-    :odbc.disconnect(state)
+  def handle_call(:rollback, _from, pid) do
+    {:reply, handle_errors(:odbc.commit(pid, :rollback)), pid}
+  end
+
+  @doc false
+  def terminate(_reason, pid) do
+    :odbc.disconnect(pid)
   end
 
   defp handle_errors({:error, reason}), do: {:error, Error.exception(reason)}

@@ -4,10 +4,10 @@ defmodule Mssqlex.Mixfile do
   def project do
     [
       app: :mssqlex,
-      version: "1.1.0",
+      version: "2.0.0-beta.0",
       description:
         "Adapter to Microsoft SQL Server. Using DBConnection and ODBC.",
-      elixir: "~> 1.6",
+      elixir: "~> 1.8",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -30,14 +30,15 @@ defmodule Mssqlex.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger, :odbc]]
+    [extra_applications: [:logger, :odbc, :gproc]]
   end
 
   defp deps do
     [
-      {:db_connection, "~> 1.1"},
-      {:decimal, "~> 1.0"},
-      {:ex_doc, "~> 0.15", only: :dev, runtime: false},
+      {:db_connection, "~> 2.1"},
+      {:decimal, "~> 1.8"},
+      {:gproc, "~> 0.8"},
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:excoveralls, "~> 0.6", only: :test},
       {:inch_ex, "~> 0.5", only: :docs},
       {:exfmt, "~> 0.4.0", only: :dev}
